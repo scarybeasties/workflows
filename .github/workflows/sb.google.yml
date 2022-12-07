@@ -32,12 +32,7 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: |
-            Library
-            Logs
-            obj
-            Temp
-            UserSettings
+          path: Library
           key: Library-Android
 
       - uses: game-ci/unity-builder@v2
