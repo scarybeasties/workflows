@@ -1,7 +1,7 @@
 name: SB - Google
 
 on:
-  workflow_dispatch: 
+  workflow_call: 
     inputs:
       development_build:
         description: 'Development Build'
