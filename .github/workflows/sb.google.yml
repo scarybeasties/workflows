@@ -51,8 +51,7 @@ jobs:
           targetPlatform: Android
           androidAppBundle: ${{ github.event.inputs.build_aab_bundle }}
           buildMethod: BuildSettings.CommandLineBuild
-          customParameters: -platform Google -development ${{ github.event.inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ github.events
-          .inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ github.event.inputs.build_aab_bundle }}
+          customParameters: -platform Google -development ${{ github.event.inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ github.events.inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ github.event.inputs.build_aab_bundle }}
 
       - name: Rename apk binary file 
         if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
