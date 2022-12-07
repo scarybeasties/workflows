@@ -5,20 +5,20 @@ on:
     inputs:
       development_build:
         description: 'Development Build'
-        type: boolean
-        default: false
+        type: string
+        default: "false"
       bundle_id:
         type: string
         description: 'Bundle ID to use'
         default: ""
       build_aab_bundle:
         description: 'Build AAB Bundle'
-        type: boolean
-        default: false
+        type: string
+        default: "false"
       archive_to_dropbox:
         description: 'Archive To Dropbox (default is AppCenter)'
-        type: boolean
-        default: false
+        type: string
+        default: "false"
 
 jobs:
   buildForGooglePlayPlatformDevelopment:
