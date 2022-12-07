@@ -8,11 +8,9 @@ on:
         type: boolean
         default: false
       bundle_id:
-        type: choice
+        type: string
         description: 'Bundle ID to use'
-        options: 
-        - com.scarybeasties.pjmasks.moonlightheroes
-        - com.pjmasks.moonlightheroes
+        default: ""
       build_aab_bundle:
         description: 'Build AAB Bundle'
         type: boolean
