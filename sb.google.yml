@@ -1,0 +1,96 @@
+name: SB - Google
+
+on:
+  workflow_dispatch: 
+    inputs:
+      development_build:
+        description: 'Development Build'
+        type: boolean
+        default: false
+      bundle_id:
+        type: choice
+        description: 'Bundle ID to use'
+        options: 
+        - com.scarybeasties.pjmasks.moonlightheroes
+        - com.pjmasks.moonlightheroes
+      build_aab_bundle:
+        description: 'Build AAB Bundle'
+        type: boolean
+        default: false
+      archive_to_dropbox:
+        description: 'Archive To Dropbox (default is AppCenter)'
+        type: boolean
+        default: false
+
+jobs:
+  buildForGooglePlayPlatformDevelopment:
+    name: Build Android (Google Play) AppCenter Development
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            Library
+            Logs
+            obj
+            Temp
+            UserSettings
+          key: Library-Android
+
+      - uses: game-ci/unity-builder@v2
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+          androidAppBundle: ${{ github.event.inputs.build_aab_bundle }}
+          buildMethod: BuildSettings.CommandLineBuild
+          customParameters: -platform Google -development ${{ github.event.inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ github.events
+          .inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ github.event.inputs.build_aab_bundle }}
+
+      - name: Rename apk binary file 
+        if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
+        run: sudo mv Google/**/*.apk Google/Android.apk || true
+      - name: Rename aab binary file 
+        if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
+        run: sudo mv Google/**/*.aab Google/Android.aab || true
+
+      - name: upload artifact to App Center
+        if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
+        uses: wzieba/AppCenter-Github-Action@v1
+        with:
+          appName: phil-bn62/${{ github.event.repository.name }}_Android
+          token: ${{secrets.APPCENTER_API_TOKEN}}
+          group: Collaborators
+          file: ${{ github.event.inputs.build_aab_bundle == 'true' && format('{0}/Google/Android.aab', github.workspace) || format('{0}/Google/Android.apk', github.workspace) }}
+          debug: true
+
+      - name: Get dropbox token
+        run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
+
+      - name: Archive to Dropbox
+        if: ${{ github.event.inputs.archive_to_dropbox == 'true' }}
+        uses: aTable/deploy-to-dropbox@v1.0.7
+        with:
+          GLOB: ${{ github.event.inputs.build_aab_bundle == 'true' && 'Google/**/*.aab' ||  'Google/**/*.apk'  }} 
+          DROPBOX_ACCESS_TOKEN: ${{ env.DB_ACCES_TOKEN }}
+          DROPBOX_DESTINATION_PATH_PREFIX: ${{ format('/AppBuilds/{0}/', github.event.repository.name) }}
+          DEBUG: true
+
+      - name: Cleanup to avoid storage limit
+        if: always()
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: build-Android
+
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Build Complete!"
