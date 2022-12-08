@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup NDK Version
-      if: ${{ inputs.android_ndk_version != '' }}
+        if: ${{ inputs.android_ndk_version != '' }}
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ inputs.android_ndk_version }}
