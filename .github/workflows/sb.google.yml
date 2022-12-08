@@ -19,6 +19,10 @@ on:
         description: 'Archive To Dropbox (default is AppCenter)'
         type: string
         default: "false"
+      android_ndk_home: 
+        description: 'optional path to external NDK'
+        type: string
+        default: ""
 
 jobs:
   buildForGooglePlayPlatformDevelopment:
@@ -52,7 +56,7 @@ jobs:
           targetPlatform: Android
           androidAppBundle: ${{ github.event.inputs.build_aab_bundle }}
           buildMethod: BuildSettings.CommandLineBuild
-          customParameters: -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }}
+          customParameters: -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ inputs.android_ndk_home }}
 
       - name: Rename apk binary file 
         if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
