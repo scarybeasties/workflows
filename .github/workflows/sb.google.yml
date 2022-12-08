@@ -19,8 +19,8 @@ on:
         description: 'Archive To Dropbox (default is AppCenter)'
         type: string
         default: "false"
-      android_ndk_home: 
-        description: 'optional path to external NDK'
+      android_ndk_version: 
+        description: 'optional NDK version'
         type: string
         default: ""
 
@@ -29,6 +29,12 @@ jobs:
     name: Build Android (Google Play) AppCenter Development
     runs-on: ubuntu-latest
     steps:
+      - name: Setup NDK Version
+      if: ${{ inputs.android_ndk_version != '' }}
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: ${{ inputs.android_ndk_version }}
+
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -56,17 +62,17 @@ jobs:
           targetPlatform: Android
           androidAppBundle: ${{ github.event.inputs.build_aab_bundle }}
           buildMethod: BuildSettings.CommandLineBuild
-          customParameters: -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ inputs.android_ndk_home }}
+          customParameters: -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Rename apk binary file 
-        if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
+        if: ${{ inputs.archive_to_dropbox == 'false' }}
         run: sudo mv Google/**/*.apk Google/Android.apk || true
       - name: Rename aab binary file 
-        if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
+        if: ${{ inputs.archive_to_dropbox == 'false' }}
         run: sudo mv Google/**/*.aab Google/Android.aab || true
 
       - name: upload artifact to App Center
-        if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
+        if: ${{ inputs.archive_to_dropbox == 'false' }}
         uses: wzieba/AppCenter-Github-Action@v1
         with:
           appName: phil-bn62/${{ github.event.repository.name }}_Android
@@ -79,7 +85,7 @@ jobs:
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
 
       - name: Archive to Dropbox
-        if: ${{ github.event.inputs.archive_to_dropbox == 'true' }}
+        if: ${{ inputs.archive_to_dropbox == 'true' }}
         uses: aTable/deploy-to-dropbox@v1.0.7
         with:
           GLOB: ${{ inputs.build_aab_bundle == 'true' && 'Google/**/*.aab' ||  'Google/**/*.apk'  }} 
