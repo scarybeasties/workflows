@@ -52,7 +52,7 @@ jobs:
           targetPlatform: Android
           androidAppBundle: ${{ github.event.inputs.build_aab_bundle }}
           buildMethod: BuildSettings.CommandLineBuild
-          customParameters: -platform Google -development ${{ github.event.inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ github.events.inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ github.event.inputs.build_aab_bundle }}
+          customParameters: -platform Google -development ${{ development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }}
 
       - name: Rename apk binary file 
         if: ${{ github.event.inputs.archive_to_dropbox == 'false' }}
@@ -68,7 +68,7 @@ jobs:
           appName: phil-bn62/${{ github.event.repository.name }}_Android
           token: ${{secrets.APPCENTER_API_TOKEN}}
           group: Collaborators
-          file: ${{ github.event.inputs.build_aab_bundle == 'true' && format('{0}/Google/Android.aab', github.workspace) || format('{0}/Google/Android.apk', github.workspace) }}
+          file: ${{ inputs.build_aab_bundle == 'true' && format('{0}/Google/Android.aab', github.workspace) || format('{0}/Google/Android.apk', github.workspace) }}
           debug: true
 
       - name: Get dropbox token
@@ -78,7 +78,7 @@ jobs:
         if: ${{ github.event.inputs.archive_to_dropbox == 'true' }}
         uses: aTable/deploy-to-dropbox@v1.0.7
         with:
-          GLOB: ${{ github.event.inputs.build_aab_bundle == 'true' && 'Google/**/*.aab' ||  'Google/**/*.apk'  }} 
+          GLOB: ${{ inputs.build_aab_bundle == 'true' && 'Google/**/*.aab' ||  'Google/**/*.apk'  }} 
           DROPBOX_ACCESS_TOKEN: ${{ env.DB_ACCES_TOKEN }}
           DROPBOX_DESTINATION_PATH_PREFIX: ${{ format('/AppBuilds/{0}/', github.event.repository.name) }}
           DEBUG: true
