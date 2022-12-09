@@ -49,10 +49,11 @@ jobs:
           ref: main
           path: ./AndroidBuildTools
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@2d697b4d9cc7a3054d37ee7201c1448654f24973
         with:
           path: Library
           key: Library-Android
+          update: true
 
       - uses: game-ci/unity-builder@v2
         env:
