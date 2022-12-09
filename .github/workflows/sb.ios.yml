@@ -5,9 +5,8 @@ on:
     inputs:
       development_build:
         description: 'Development Build'
-        required: true
-        type: boolean
-        default: false
+        type: string
+        default: 'false'
       bundle_id:
         type: string
         description: 'Bundle ID to use'
