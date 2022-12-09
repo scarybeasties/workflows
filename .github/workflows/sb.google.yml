@@ -36,6 +36,11 @@ jobs:
         with:
           ndk-version: ${{ inputs.android_ndk_version }}
 
+      - uses: actions/cache@v2
+        with:
+          path: Assets
+          key: Assets
+
       - uses: actions/checkout@v2
         with:
           submodules: recursive
