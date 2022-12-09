@@ -40,7 +40,7 @@ jobs:
         with:
           targetPlatform: iOS
           buildMethod: BuildSettings.CommandLineBuild
-          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default
+          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default
 
       - uses: actions/upload-artifact@v2
         with:
@@ -97,8 +97,8 @@ jobs:
           APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
 
           BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
-          BUNDLE_ID: com.scarybeasties.testapp
-          PROJECT_NAME: PowerHeroes # Change it to match your project's name
+          BUNDLE_ID: ${{ inputs.bundle_id }}
+          PROJECT_NAME: ${{ github.event.repository.name }}
 
         run: |
           pwd
@@ -107,6 +107,140 @@ jobs:
           find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
           bundle install
           bundle exec fastlane ios BuildAppCenter
+
+      - name: Cleanup to avoid storage limit
+        if: always()
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: build-iOS
+
+  releaseToSBTestflight:
+    if: ${{ inputs.destination == "SB Testflight" }}
+    name: Release to SB Testflight
+    runs-on: macos-latest
+    needs: buildForiOS
+    steps:
+      - name: Setup Xcode Version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '13.4.1'
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Checkout Certs
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ secrets.MATCH_REPOSITORY }}
+          token: ${{ secrets.GH_PAT }}
+          ref: main
+          path: ./certs
+
+      - name: Download iOS Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build-iOS
+          path: build/iOS
+
+      - uses: mikehardy/buildcache-action@v1
+
+      - name: Run SB Fastlane
+        env:
+          APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
+          APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+          SB_CERTIFICATE_PASSWORD: ${{ secrets.SB_CERTIFICATE_PASSWORD }}
+
+          MATCH_DEPLOY_KEY: ${{ secrets.MATCH_DEPLOY_KEY }}
+          MATCH_REPOSITORY: ${{ secrets.MATCH_REPOSITORY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
+
+          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+          APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
+
+          BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
+          BUNDLE_ID: ${{ inputs.bundle_id }}
+          PROJECT_NAME: ${{ github.event.repository.name }}
+
+        run: |
+          pwd
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "${MATCH_DEPLOY_KEY}"
+          find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
+          bundle install
+          bundle exec fastlane ios BuildSBTestFlight
+
+      - name: Cleanup to avoid storage limit
+        if: always()
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: build-iOS
+
+  releaseToEOneTestflight:
+    if: ${{ inputs.destination == "EOne Testflight" }}
+    name: Release to EOne Testflight
+    runs-on: macos-latest
+    needs: buildForiOS
+    steps:
+      - name: Setup Xcode Version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '13.4.1'
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Checkout Certs
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ secrets.MATCH_REPOSITORY }}
+          token: ${{ secrets.GH_PAT }}
+          ref: main
+          path: ./certs
+
+      - name: Download iOS Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build-iOS
+          path: build/iOS
+
+      - uses: mikehardy/buildcache-action@v1
+
+      - name: Run SB Fastlane
+        env:
+          APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
+          APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+          SB_CERTIFICATE_PASSWORD: ${{ secrets.SB_CERTIFICATE_PASSWORD }}
+
+          MATCH_DEPLOY_KEY: ${{ secrets.MATCH_DEPLOY_KEY }}
+          MATCH_REPOSITORY: ${{ secrets.MATCH_REPOSITORY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
+
+          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+          APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
+
+          BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
+          BUNDLE_ID: ${{ inputs.bundle_id }}
+          PROJECT_NAME: ${{ github.event.repository.name }}
+
+        run: |
+          pwd
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "${MATCH_DEPLOY_KEY}"
+          find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
+          bundle install
+          bundle exec fastlane ios BuildEOneTestFlight
 
       - name: Cleanup to avoid storage limit
         if: always()
