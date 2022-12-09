@@ -26,7 +26,7 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@82f8348041534f80365ba1e8df5d06c3404f26b8
         with:
           path: Library
           key: Library-iOS
@@ -89,6 +89,14 @@ jobs:
           ref: main
           path: ./certs
 
+      - name: Checkout Fastlane
+        uses: actions/checkout@v2
+        with:
+          repository: scarybeasties/Fastlane
+          token: ${{ secrets.GH_PAT }}
+          ref: main
+          path: ./fastlane
+
       - name: Download iOS Artifact
         uses: actions/download-artifact@v2
         with:
@@ -125,6 +133,7 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add - <<< "${MATCH_DEPLOY_KEY}"
           find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
+          cd fastlane
           bundle install
           bundle exec fastlane ios BuildAppCenter
 
@@ -192,6 +201,7 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add - <<< "${MATCH_DEPLOY_KEY}"
           find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
+          cd fastlane
           bundle install
           bundle exec fastlane ios BuildSBTestFlight
 
@@ -259,6 +269,7 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add - <<< "${MATCH_DEPLOY_KEY}"
           find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
+          cd fastlane
           bundle install
           bundle exec fastlane ios BuildEOneTestFlight
 
