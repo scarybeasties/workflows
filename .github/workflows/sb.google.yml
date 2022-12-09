@@ -52,8 +52,8 @@ jobs:
       - uses: actions/cache@82f8348041534f80365ba1e8df5d06c3404f26b8
         with:
           path: |
-          Library
-          $HOME/.config/unity3d/cache
+            Library
+            $HOME/.config/unity3d/cache
           key: Library-Android
           update: true
 
