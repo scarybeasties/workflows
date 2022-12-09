@@ -15,10 +15,10 @@ on:
         description: 'Build AAB Bundle'
         type: string
         default: "false"
-      archive_to_dropbox:
-        description: 'Archive To Dropbox (default is AppCenter)'
+      destination:
+        description: 'Destination of build'
         type: string
-        default: "false"
+        default: "AppCenter"
       android_ndk_version: 
         description: 'optional NDK version'
         type: string
@@ -66,14 +66,14 @@ jobs:
           customParameters: -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Rename apk binary file 
-        if: ${{ inputs.archive_to_dropbox == 'false' }}
+        if: ${{ inputs.destination == 'AppCenter' }}
         run: sudo mv Google/**/*.apk Google/Android.apk || true
       - name: Rename aab binary file 
-        if: ${{ inputs.archive_to_dropbox == 'false' }}
+        if: ${{ inputs.destination == 'AppCenter' }}
         run: sudo mv Google/**/*.aab Google/Android.aab || true
 
       - name: upload artifact to App Center
-        if: ${{ inputs.archive_to_dropbox == 'false' }}
+        if: ${{ inputs.destination == 'AppCenter' }}
         uses: wzieba/AppCenter-Github-Action@v1
         with:
           appName: phil-bn62/${{ github.event.repository.name }}_Android
@@ -86,7 +86,7 @@ jobs:
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
 
       - name: Archive to Dropbox
-        if: ${{ inputs.archive_to_dropbox == 'true' }}
+        if: ${{ inputs.destination == 'Dropbox' }}
         uses: aTable/deploy-to-dropbox@v1.0.7
         with:
           GLOB: ${{ inputs.build_aab_bundle == 'true' && 'Google/**/*.aab' ||  'Google/**/*.apk'  }} 

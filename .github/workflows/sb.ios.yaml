@@ -1,4 +1,4 @@
-name: SB - iOS AppCenter Prod
+name: SB - iOS
 
 on:
   workflow_call: 
@@ -8,6 +8,14 @@ on:
         required: true
         type: boolean
         default: false
+      bundle_id:
+        type: string
+        description: 'Bundle ID to use'
+        default: ""
+      destination:
+        type: string
+        description: 'Destination of build'
+        default: "AppCenter"
 
 jobs:
   buildForiOS:
@@ -32,7 +40,7 @@ jobs:
         with:
           targetPlatform: iOS
           buildMethod: BuildSettings.CommandLineBuild
-          customParameters: -platform iOS -development ${{ github.event.inputs.development_build }} -bundle_id com.scarybeasties.testapp -addressables_profile Default
+          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default
 
       - uses: actions/upload-artifact@v2
         with:
@@ -40,6 +48,7 @@ jobs:
           path: build/iOS
 
   releaseToAppCenter:
+    if: ${{ inputs.destination == "AppCenter" }}
     name: Release to App Center
     runs-on: macos-latest
     needs: buildForiOS
