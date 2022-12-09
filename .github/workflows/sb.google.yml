@@ -36,10 +36,11 @@ jobs:
         with:
           ndk-version: ${{ inputs.android_ndk_version }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@82f8348041534f80365ba1e8df5d06c3404f26b8
         with:
-          path: Assets
-          key: Assets
+          path: ./
+          key: Assets-Android
+          update: true
 
       - uses: actions/checkout@v2
         with:
@@ -53,14 +54,6 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           ref: main
           path: ./AndroidBuildTools
-
-      - uses: actions/cache@82f8348041534f80365ba1e8df5d06c3404f26b8
-        with:
-          path: |
-            Library
-            $HOME/.config/unity3d/cache
-          key: Library-Android
-          update: true
 
       - uses: game-ci/unity-builder@v2
         env:
