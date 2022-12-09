@@ -69,7 +69,7 @@ jobs:
           path: build/iOS
 
   releaseToAppCenter:
-    if: ${{ inputs.destination == "AppCenter" }}
+    if: ${{ inputs.destination == 'AppCenter' }}
     name: Release to App Center
     runs-on: macos-latest
     needs: buildForiOS
@@ -136,7 +136,7 @@ jobs:
           name: build-iOS
 
   releaseToSBTestflight:
-    if: ${{ inputs.destination == "SB Testflight" }}
+    if: ${{ inputs.destination == 'SB Testflight' }}
     name: Release to SB Testflight
     runs-on: macos-latest
     needs: buildForiOS
@@ -203,7 +203,7 @@ jobs:
           name: build-iOS
 
   releaseToEOneTestflight:
-    if: ${{ inputs.destination == "EOne Testflight" }}
+    if: ${{ inputs.destination == 'EOne Testflight' }}
     name: Release to EOne Testflight
     runs-on: macos-latest
     needs: buildForiOS
