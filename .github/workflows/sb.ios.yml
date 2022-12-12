@@ -165,6 +165,14 @@ jobs:
           ref: main
           path: ./certs
 
+      - name: Checkout Fastlane
+        uses: actions/checkout@v2
+        with:
+          repository: scarybeasties/Fastlane
+          token: ${{ secrets.GH_PAT }}
+          ref: main
+          path: ./fastlane
+
       - name: Download iOS Artifact
         uses: actions/download-artifact@v2
         with:
@@ -232,6 +240,14 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           ref: main
           path: ./certs
+
+      - name: Checkout Fastlane
+        uses: actions/checkout@v2
+        with:
+          repository: scarybeasties/Fastlane
+          token: ${{ secrets.GH_PAT }}
+          ref: main
+          path: ./fastlane
 
       - name: Download iOS Artifact
         uses: actions/download-artifact@v2
