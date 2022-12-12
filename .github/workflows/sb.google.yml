@@ -38,7 +38,13 @@ jobs:
 
       - uses: actions/cache@82f8348041534f80365ba1e8df5d06c3404f26b8
         with:
-          path: ./
+          path: |
+            Assets
+            Library
+            obj
+            Packages
+            ProjectSettings
+            Temp
           key: Assets-Android
           update: true
 
