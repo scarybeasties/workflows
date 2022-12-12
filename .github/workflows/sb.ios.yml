@@ -70,7 +70,7 @@ jobs:
   releaseToAppCenter:
     if: ${{ inputs.destination == 'AppCenter' }}
     name: Release to App Center
-    runs-on: self-hosted
+    runs-on: macos-latest
     needs: buildForiOS
     steps:
       - name: Setup Xcode Version
