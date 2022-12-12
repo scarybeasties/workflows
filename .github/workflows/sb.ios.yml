@@ -146,7 +146,7 @@ jobs:
   releaseToSBTestflight:
     if: ${{ inputs.destination == 'SB Testflight' }}
     name: Release to SB Testflight
-    runs-on: macos-latest
+    runs-on: self-hosted
     needs: buildForiOS
     steps:
       - name: Setup Xcode Version
