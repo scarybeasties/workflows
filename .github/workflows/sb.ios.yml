@@ -267,7 +267,7 @@ jobs:
           APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-          SB_CERTIFICATE_PASSWORD: ${{ secrets.SB_CERTIFICATE_PASSWORD }}
+          EONE_CERTIFICATE_PASSWORD: ${{ secrets.EONE_CERTIFICATE_PASSWORD }}
 
           MATCH_DEPLOY_KEY: ${{ secrets.MATCH_DEPLOY_KEY }}
           MATCH_REPOSITORY: ${{ secrets.MATCH_REPOSITORY }}
