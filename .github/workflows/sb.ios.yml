@@ -25,14 +25,16 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
 
       - uses: actions/cache@82f8348041534f80365ba1e8df5d06c3404f26b8
         with:
           path: Library
           key: Library-iOS
 
-      - name: Get commit count
-        run: echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
+      - name: Get version code
+        id: version_code
+        uses: lucasfe/version_code_generator@v1.0.0
 
       - uses: game-ci/unity-builder@v2
         env:
@@ -43,7 +45,7 @@ jobs:
           targetPlatform: iOS
           buildMethod: BuildSettings.CommandLineBuild
           versioning: Semantic
-          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ env.COMMIT_COUNT }}
+          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ steps.version_code.code }}
 
       - name: Clear cache to allow recaching
         uses: actions/github-script@v6
