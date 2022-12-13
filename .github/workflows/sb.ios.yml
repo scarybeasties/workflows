@@ -42,7 +42,7 @@ jobs:
         with:
           targetPlatform: iOS
           buildMethod: BuildSettings.CommandLineBuild
-          versioning: Tag
+          versioning: None
           customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ env.COMMIT_COUNT }}
 
       - name: Clear cache to allow recaching
