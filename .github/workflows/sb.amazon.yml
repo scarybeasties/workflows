@@ -50,7 +50,7 @@ jobs:
           ref: main
           path: ./AndroidBuildTools
 
-      - uses: actions/cache
+      - uses: actions/cache@v2
         with:
           path: Library
           key: Library-Android
