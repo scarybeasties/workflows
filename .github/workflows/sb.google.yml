@@ -51,9 +51,12 @@ jobs:
 
       - uses: actions/cache@82f8348041534f80365ba1e8df5d06c3404f26b8
         with:
-          path: Library
+          path: ${{ format('{0}/Library', github.workspace) }}
           key: Library-Android
           update: true
+
+      - name: Get commit count
+        run: echo "COMMIT_COUNT=$(curl -I -k "https://api.github.com/repos/:owner/:repo/commits?per_page=1" | sed -n '/^[Ll]ink:/ s/.*"next".*page=\([0-9]*\).*"last".*/\1/p')" >> $GITHUB_ENV
 
       - uses: game-ci/unity-builder@v2
         env:
@@ -64,7 +67,8 @@ jobs:
           targetPlatform: Android
           androidAppBundle: ${{ github.event.inputs.build_aab_bundle }}
           buildMethod: BuildSettings.CommandLineBuild
-          customParameters: -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }}
+          versioning: Tag
+          customParameters: -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ env.COMMIT_COUNT }}
 
       - name: Rename apk binary file 
         if: ${{ inputs.destination == 'AppCenter' }}

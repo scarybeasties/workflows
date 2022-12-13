@@ -31,6 +31,9 @@ jobs:
           path: Library
           key: Library-iOS
 
+      - name: Get commit count
+        run: echo "COMMIT_COUNT=$(curl -I -k "https://api.github.com/repos/:owner/:repo/commits?per_page=1" | sed -n '/^[Ll]ink:/ s/.*"next".*page=\([0-9]*\).*"last".*/\1/p')" >> $GITHUB_ENV
+
       - uses: game-ci/unity-builder@v2
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -39,7 +42,8 @@ jobs:
         with:
           targetPlatform: iOS
           buildMethod: BuildSettings.CommandLineBuild
-          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default
+          versioning: Tag
+          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ env.COMMIT_COUNT }}
 
       - name: Clear cache to allow recaching
         uses: actions/github-script@v6
