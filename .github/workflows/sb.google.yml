@@ -49,9 +49,9 @@ jobs:
           ref: main
           path: ./AndroidBuildTools
 
-      - uses: actions/cache@82f8348041534f80365ba1e8df5d06c3404f26b8
+      - uses: actions/cache@v2
         with:
-          path: ${{ format('{0}/Library', github.workspace) }}
+          path: Library
           key: Library-Android
           update: true
 
