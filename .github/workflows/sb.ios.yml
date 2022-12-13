@@ -32,7 +32,7 @@ jobs:
           key: Library-iOS
 
       - name: Get commit count
-        run: echo "COMMIT_COUNT=$(curl -I -k "https://api.github.com/repos/:owner/:repo/commits?per_page=1" | sed -n '/^[Ll]ink:/ s/.*"next".*page=\([0-9]*\).*"last".*/\1/p')" >> $GITHUB_ENV
+        run: echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
 
       - uses: game-ci/unity-builder@v2
         env:
