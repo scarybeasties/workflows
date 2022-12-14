@@ -41,6 +41,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          VERSION: none
         with:
           targetPlatform: iOS
           buildMethod: BuildSettings.CommandLineBuild
