@@ -73,7 +73,7 @@ jobs:
         with:
           GLOB: dist-en.zip
           DROPBOX_ACCESS_TOKEN: ${{ env.DB_ACCES_TOKEN }}
-          DROPBOX_DESTINATION_PATH_PREFIX: ${{ format('/AppBuilds/{0}/{1}/', github.event.repository.name, matrix.language ) }}
+          DROPBOX_DESTINATION_PATH_PREFIX: ${{ format('/AppBuilds/{0}/en/', github.event.repository.name ) }}
           DEBUG: true
 
       - name: Notify slack
