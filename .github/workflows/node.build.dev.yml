@@ -42,7 +42,9 @@ jobs:
           cache-dependency-path: 'package-lock.json'
 
       - name: Configure Git
-        run: git config --global --add url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
+        run: |
+            git config --global url."https://github.com/".insteadOf git@github.com:
+            git config --global url."https://".insteadOf git://
 
       - name: Setup NPM
         run: npm ci --ignore-scripts
