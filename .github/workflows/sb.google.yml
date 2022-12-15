@@ -83,7 +83,7 @@ jobs:
       - name: run any App Center CLI command
         uses: avocaddo/AppCenter-Github-Action@v1.0.2
         with:
-          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && format('{0}/Google/Android.aab', github.workspace) || format('{0}/Google/Android.apk', github.workspace) }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators
+          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && Google/Android.aab || Google/Android.apk }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators
           token: ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
