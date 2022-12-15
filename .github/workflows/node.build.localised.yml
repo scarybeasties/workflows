@@ -88,7 +88,7 @@ jobs:
           username: phil@scarybserver.com
           password: ${{ secrets.ftp_password }}
           local-dir: dist-${{ matrix.language }}/
-          server-dir: ${{ inputs.deployment_directory }}/${{ matrix.language }}/$NOW
+          server-dir: ${{ inputs.deployment_directory }}/${{ matrix.language }}/$NOW/
 
       - name: Zip Artifacts
         uses: montudor/action-zip@v1
