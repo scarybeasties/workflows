@@ -79,15 +79,12 @@ jobs:
         if: ${{ inputs.destination == 'AppCenter' }}
         run: sudo mv Google/**/*.aab Google/Android.aab || true
 
-      - name: upload artifact to App Center
-        if: ${{ inputs.destination == 'AppCenter' }}
-        uses: wzieba/AppCenter-Github-Action@v1
+
+      - name: run any App Center CLI command
+        uses: joabalea/App-Center-action@v1.0.2
         with:
-          appName: phil-bn62/${{ github.event.repository.name }}_Android
+          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && format('{0}/Google/Android.aab', github.workspace) || format('{0}/Google/Android.apk', github.workspace) }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators
           token: ${{secrets.APPCENTER_API_TOKEN}}
-          group: Collaborators
-          file: ${{ inputs.build_aab_bundle == 'true' && format('{0}/Google/Android.aab', github.workspace) || format('{0}/Google/Android.apk', github.workspace) }}
-          debug: true
 
       - name: Get dropbox token
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
@@ -127,4 +124,21 @@ jobs:
         uses: geekyeggo/delete-artifact@v1
         with:
           name: build-Android
+
+      - name: Notify slack
+        run: |
+            curl -X POST -H 'Content-type: application/json' --data '{"text": "",
+              "attachments": [
+                {
+                  "title": "Build complete",
+                  "color": "28a745",
+                  "fields": [
+                    {
+                      "title": "Project",
+                      "short": true,
+                      "value": "${{ github.event.repository.name }} Build ${{ steps.version_code.outputs.code }}"
+                    }
+                  ]
+                }
+              ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
