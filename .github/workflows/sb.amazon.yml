@@ -79,15 +79,20 @@ jobs:
         if: ${{ inputs.destination == 'AppCenter' }}
         run: sudo mv Google/**/*.aab Google/Android.aab || true
 
-      - name: upload artifact to App Center
+      - name: Create the app on AppCenter if it doesnt exist
         if: ${{ inputs.destination == 'AppCenter' }}
-        uses: wzieba/AppCenter-Github-Action@v1
+        uses: avocaddo/AppCenter-Github-Action@v1.0.2
+        continue-on-error: true
         with:
-          appName: phil-bn62/${{ github.event.repository.name }}_Android
+          command: appcenter apps create -d ${{ github.event.repository.name }}_Android -n ${{ github.event.repository.name }}_Android -o Android -p Unity
           token: ${{secrets.APPCENTER_API_TOKEN}}
-          group: Collaborators
-          file: ${{ inputs.build_aab_bundle == 'true' && format('{0}/Google/Android.aab', github.workspace) || format('{0}/Google/Android.apk', github.workspace) }}
-          debug: true
+
+      - name: Upload APK to AppCenter
+        if: ${{ inputs.destination == 'AppCenter' }}
+        uses: avocaddo/AppCenter-Github-Action@v1.0.2
+        with:
+          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators
+          token: ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV

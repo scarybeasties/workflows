@@ -79,8 +79,16 @@ jobs:
         if: ${{ inputs.destination == 'AppCenter' }}
         run: sudo mv Google/**/*.aab Google/Android.aab || true
 
+      - name: Create the app on AppCenter if it doesnt exist
+        if: ${{ inputs.destination == 'AppCenter' }}
+        uses: avocaddo/AppCenter-Github-Action@v1.0.2
+        continue-on-error: true
+        with:
+          command: appcenter apps create -d ${{ github.event.repository.name }}_Android -n ${{ github.event.repository.name }}_Android -o Android -p Unity
+          token: ${{secrets.APPCENTER_API_TOKEN}}
 
-      - name: run any App Center CLI command
+      - name: Upload APK to AppCenter
+        if: ${{ inputs.destination == 'AppCenter' }}
         uses: avocaddo/AppCenter-Github-Action@v1.0.2
         with:
           command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators
