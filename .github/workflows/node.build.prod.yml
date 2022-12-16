@@ -11,6 +11,10 @@ on:
         description: 'Deployment Directory'
         type: string
         default: ""
+      build_language:
+        description: 'build_language'
+        type: string
+        default: "en"
 
 jobs:
   build:
@@ -30,8 +34,8 @@ jobs:
       - name: Update build.config.json
         run: echo "`jq '.includeIFrame=${{ inputs.include_iframe }}' build.config.json`" > build.config.json
 
-      - name: Force just EN build
-        run: echo "`jq '.buildLanguages=["en"]' build.config.json`" > build.config.json
+      - name: Force a single language
+        run: echo "`jq '.buildSingleLanguage="${{ inputs.build_language }}"' build.config.json`" > build.config.json
 
       - name: Get version code
         id: version_code

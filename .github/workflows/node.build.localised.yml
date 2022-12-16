@@ -57,7 +57,7 @@ jobs:
         run: echo "`jq '.includeIFrame=${{ inputs.include_iframe }}' build.config.json`" > build.config.json
 
       - name: Force lang
-        run: echo "`jq '.buildLanguages=["${{ matrix.language }}"]' build.config.json`" > build.config.json
+        run: echo "`jq '.buildSingleLanguage="${{ matrix.language }}"' build.config.json`" > build.config.json
 
       - name: Get version code
         id: version_code

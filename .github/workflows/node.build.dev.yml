@@ -29,9 +29,9 @@ jobs:
 
       - name: Update build.config.json
         run: echo "`jq '.includeIFrame=${{ inputs.include_iframe }}' build.config.json`" > build.config.json
-
+        
       - name: Force just EN build
-        run: echo "`jq '.buildLanguages=["en"]' build.config.json`" > build.config.json
+        run: echo "`jq '.buildSingleLanguage="en"' build.config.json`" > build.config.json
 
       - name: Get version code
         id: version_code
