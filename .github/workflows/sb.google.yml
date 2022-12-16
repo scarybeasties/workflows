@@ -101,7 +101,7 @@ jobs:
         run: |
             curl -X POST https://content.dropboxapi.com/2/files/upload \
               --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
-              --header "Dropbox-API-Arg: {\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"${{ format('/Clients/AppBuilds/{0}/{0}_{1}{2}', github.event.repository.name, steps.version_code.outputs.code, (inputs.build_aab_bundle == 'true' && '.aab' ||  '.apk'  ) }}\",\"strict_conflict\":false}" \
+              --header "Dropbox-API-Arg: {\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"${{ format('/Clients/AppBuilds/{0}/{0}_{1}{2}', github.event.repository.name, steps.version_code.outputs.code,(inputs.build_aab_bundle == 'true' && '.aab' ||  '.apk'  )) }}\",\"strict_conflict\":false}" \
               --header "Content-Type: application/octet-stream" \
               --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
