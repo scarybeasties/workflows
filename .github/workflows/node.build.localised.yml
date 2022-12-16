@@ -84,8 +84,8 @@ jobs:
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
-          server: ftp.scarybserver.com
-          username: phil@scarybserver.com
+          server: scarybeasties.com
+          username: github
           password: ${{ secrets.ftp_password }}
           local-dir: dist-${{ matrix.language }}/
           server-dir: ${{ inputs.deployment_directory }}/${{ env.NOW }}/${{ matrix.language }}/
@@ -155,7 +155,7 @@ jobs:
               attachments+='{
               "title": "Link to '"$i"' build",
               "short": false,
-              "value": "https://scarybserver.com/${{ inputs.deployment_directory }}/${{ env.NOW }}/'"$i"'"
+              "value": "http://www.scarybeasties.com/clients/${{ inputs.deployment_directory }}/${{ env.NOW }}/'"$i"'"
             },'
           done
 
