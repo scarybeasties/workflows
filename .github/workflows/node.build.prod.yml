@@ -58,7 +58,6 @@ jobs:
           args: zip -qq -r dist-en.zip dist-en
 
       - name: Archive to Dropbox
-        if: ${{ inputs.destination == 'Dropbox' }}
         run: |
             curl -X POST https://content.dropboxapi.com/2/files/upload \
               --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
