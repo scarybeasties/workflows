@@ -57,6 +57,9 @@ jobs:
         with:
           args: zip -qq -r dist-en.zip dist-en
 
+      - name: Get dropbox token
+        run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
+
       - name: Archive to Dropbox
         run: |
             curl -X POST https://content.dropboxapi.com/2/files/upload \
