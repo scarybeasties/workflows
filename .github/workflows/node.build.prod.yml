@@ -52,6 +52,22 @@ jobs:
       - run: npm rebuild && npm run prepare --if-present
       - run: npm run build:prod
 
+      - name: Zip Artifacts
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r dist-en.zip dist-en
+
+      - name: Archive to Dropbox
+        if: ${{ inputs.destination == 'Dropbox' }}
+        run: |
+            curl -X POST https://content.dropboxapi.com/2/files/upload \
+              --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+              --header "Dropbox-API-Arg: {\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"${{ format('Clients/AppBuilds/{0}/{0}_${{ steps.version_code.outputs.code }}.zip ', github.event.repository.name) }}\",\"strict_conflict\":false}" \
+              --header "Content-Type: application/octet-stream" \
+              --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+              --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+              --data-binary @"dist-en.zip"
+
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
@@ -60,22 +76,6 @@ jobs:
           password: ${{ secrets.ftp_password }}
           local-dir: dist-en/
           server-dir: ${{ inputs.deployment_directory }}/${{ steps.version_code.outputs.code }}/
-
-      - name: Zip Artifacts
-        uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r dist-en.zip dist-en
-
-      - name: Get dropbox token
-        run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
-
-      - name: Archive to Dropbox
-        uses: aTable/deploy-to-dropbox@v1.0.7
-        with:
-          GLOB: dist-en.zip
-          DROPBOX_ACCESS_TOKEN: ${{ env.DB_ACCES_TOKEN }}
-          DROPBOX_DESTINATION_PATH_PREFIX: ${{ format('/AppBuilds/{0}/en/', github.event.repository.name ) }}
-          DEBUG: true
 
       - name: Notify slack
         run: |
