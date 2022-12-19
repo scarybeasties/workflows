@@ -54,7 +54,7 @@ jobs:
         with:
           path: Library
           key: Library-Android
-          update: true
+          restore-keys: Library-
 
       - name: Get version code
         id: version_code
