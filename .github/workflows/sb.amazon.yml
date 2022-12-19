@@ -90,8 +90,9 @@ jobs:
       - name: Upload APK to AppCenter
         if: ${{ inputs.destination == 'AppCenter' }}
         uses: avocaddo/AppCenter-Github-Action@v1.0.2
+        continue-on-error: true
         with:
-          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators -s
+          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators --silent
           token: ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token

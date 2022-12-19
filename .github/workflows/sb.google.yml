@@ -91,8 +91,9 @@ jobs:
       - name: Upload APK to AppCenter
         if: ${{ inputs.destination == 'AppCenter' }}
         uses: avocaddo/AppCenter-Github-Action@v1.0.2
+        continue-on-error: true
         with:
-          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators -s
+          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators --silent
           token: ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
@@ -107,7 +108,7 @@ jobs:
               --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
               --data-binary @"${{ inputs.build_aab_bundle == 'true' && 'Google/**/*.aab' ||  'Google/**/*.apk'  }}"
-              
+
 
       - name: Cleanup to avoid storage limit
         if: always()
