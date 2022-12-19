@@ -91,7 +91,7 @@ jobs:
         if: ${{ inputs.destination == 'AppCenter' }}
         uses: avocaddo/AppCenter-Github-Action@v1.0.2
         with:
-          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators
+          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators -s
           token: ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
@@ -105,27 +105,6 @@ jobs:
           DROPBOX_ACCESS_TOKEN: ${{ env.DB_ACCES_TOKEN }}
           DROPBOX_DESTINATION_PATH_PREFIX: ${{ format('/AppBuilds/{0}/', github.event.repository.name) }}
           DEBUG: true
-
-      - name: Clear cache to allow recaching
-        uses: actions/github-script@v6
-        with:
-          script: |
-            console.log("About to clear")
-            const caches = await github.rest.actions.getActionsCacheList({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-            for (const cache of caches.data.actions_caches) {
-              if (cache.id == 'Library-Android')
-              {
-                github.rest.actions.deleteActionsCacheById({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  cache_id: cache.id,
-                })
-              }
-            }
-            console.log("Clear completed")
 
       - name: Cleanup to avoid storage limit
         if: always()
