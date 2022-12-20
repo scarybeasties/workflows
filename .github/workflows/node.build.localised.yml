@@ -155,7 +155,7 @@ jobs:
               attachments+='{
               "title": "Link to '"$i"' build",
               "short": false,
-              "value": "http://www.scarybeasties.com/clients/${{ inputs.deployment_directory }}/${{ env.NOW }}/'"$i"'"
+              "value": "http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ env.NOW }}/'"$i"'"
             },'
           done
 
