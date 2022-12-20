@@ -113,3 +113,19 @@ jobs:
         with:
           name: build-Android
 
+      - name: Notify slack
+        run: |
+            curl -X POST -H 'Content-type: application/json' --data '{"text": "",
+              "attachments": [
+                {
+                  "title": "Amazon Build complete",
+                  "color": "28a745",
+                  "fields": [
+                    {
+                      "title": "Project",
+                      "short": true,
+                      "value": "${{ github.event.repository.name }} Build ${{ steps.version_code.outputs.code }}"
+                    }
+                  ]
+                }
+              ]}' ${{ secrets.SLACK_WEBHOOK_URL }}

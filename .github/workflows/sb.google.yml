@@ -120,7 +120,7 @@ jobs:
             curl -X POST -H 'Content-type: application/json' --data '{"text": "",
               "attachments": [
                 {
-                  "title": "Build complete",
+                  "title": "Google Build complete",
                   "color": "28a745",
                   "fields": [
                     {
