@@ -67,9 +67,10 @@ jobs:
         with:
           targetPlatform: Android
           androidAppBundle: ${{ github.event.inputs.build_aab_bundle }}
-          buildMethod: BuildSettings.CommandLineBuild
-          versioning: Tag
-          customParameters: -platform Amazon -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -buildVersion none
+          buildMethod: ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild
+          versioning: Custom
+          version: none
+          customParameters: -platform Amazon -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }}
 
       - name: Rename apk binary file 
         if: ${{ inputs.destination == 'AppCenter' }}
