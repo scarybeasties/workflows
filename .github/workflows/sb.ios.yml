@@ -130,11 +130,6 @@ jobs:
           name: buildNumber
           path: buildNumber.txt
 
-      - name: Set build number as variable
-        run: |
-          value=$(<buildNumber.txt)
-          echo "BUILD_NUMBER='$value'" >> $GITHUB_ENV 
-
       - uses: mikehardy/buildcache-action@v1
 
       - name: Fix File Permissions and Run fastlane
@@ -214,11 +209,6 @@ jobs:
         with:
           name: buildNumber
           path: buildNumber.txt
-
-      - name: Set build number as variable
-        run: |
-          value=$(<buildNumber.txt)
-          echo "BUILD_NUMBER='$value'" >> $GITHUB_ENV 
 
       - name: Notify slack  
         run: |
@@ -338,11 +328,6 @@ jobs:
         with:
           name: buildNumber
           path: buildNumber.txt
-
-      - name: Set build number as variable
-        run: |
-          value=$(<buildNumber.txt)
-          echo "BUILD_NUMBER='$value'" >> $GITHUB_ENV 
 
       - name: Notify slack  
         run: |
