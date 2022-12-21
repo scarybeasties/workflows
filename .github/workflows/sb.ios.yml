@@ -40,7 +40,7 @@ jobs:
 
       - shell: bash
         run: |
-        expr ${{ steps.version_code.outputs.code }} > buildNumber.txt
+          expr ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
       - uses: game-ci/unity-builder@v2
         env:
