@@ -38,6 +38,10 @@ jobs:
         id: version_code
         uses: lucasfe/version_code_generator@v1.0.0
 
+      - shell: bash
+        run: |
+        expr ${{ steps.version_code.outputs.code }} > buildNumber.txt
+
       - uses: game-ci/unity-builder@v2
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -77,6 +81,11 @@ jobs:
           name: build-iOS
           path: build/iOS
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: buildNumber
+          path: buildNumber.txt
+
   releaseToAppCenter:
     if: ${{ inputs.destination == 'AppCenter' }}
     name: Release to App Center
@@ -92,10 +101,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.ref }}
-
-      - name: Get version code
-        id: version_code
-        uses: lucasfe/version_code_generator@v1.0.0
 
       - name: Checkout Certs
         uses: actions/checkout@v2
@@ -118,6 +123,15 @@ jobs:
         with:
           name: build-iOS
           path: build/iOS
+
+      - name: Download buildNumber Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: buildNumber
+          path: buildNumber.txt
+
+      - name: Set build number as variable
+        run: echo "BUILD_NUMBER=$(cat buildNumber.txt)" >> $GITHUB_ENV 
 
       - uses: mikehardy/buildcache-action@v1
 
@@ -170,7 +184,7 @@ jobs:
                     {
                       "title": "Project",
                       "short": true,
-                      "value": "${{ github.event.repository.name }} Build ${{ steps.version_code.outputs.code }}"
+                      "value": "${{ github.event.repository.name }} Build ${{ env.BUILD_NUMBER }}"
                     }
                   ]
                 }
@@ -193,9 +207,14 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Get version code
-        id: version_code
-        uses: lucasfe/version_code_generator@v1.0.0
+      - name: Download buildNumber Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: buildNumber
+          path: buildNumber.txt
+
+      - name: Set build number as variable
+        run: echo "BUILD_NUMBER=$(cat buildNumber.txt)" >> $GITHUB_ENV 
 
       - name: Notify slack  
         run: |
@@ -310,9 +329,14 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Get version code
-        id: version_code
-        uses: lucasfe/version_code_generator@v1.0.0
+      - name: Download buildNumber Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: buildNumber
+          path: buildNumber.txt
+
+      - name: Set build number as variable
+        run: echo "BUILD_NUMBER=$(cat buildNumber.txt)" >> $GITHUB_ENV 
 
       - name: Notify slack  
         run: |
