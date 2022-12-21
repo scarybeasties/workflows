@@ -93,6 +93,10 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
+      - name: Get version code
+        id: version_code
+        uses: lucasfe/version_code_generator@v1.0.0
+
       - name: Checkout Certs
         uses: actions/checkout@v2
         with:
@@ -179,6 +183,20 @@ jobs:
     needs: buildForiOS
     steps:
 
+      - name: Setup Xcode Version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '13.4.1'
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Get version code
+        id: version_code
+        uses: lucasfe/version_code_generator@v1.0.0
+
       - name: Notify slack  
         run: |
             curl -X POST -H 'Content-type: application/json' --data '{"text": "",
@@ -195,16 +213,6 @@ jobs:
                   ]
                 }
               ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Setup Xcode Version
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '13.4.1'
-
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.ref }}
 
       - name: Checkout Certs
         uses: actions/checkout@v2
@@ -291,6 +299,21 @@ jobs:
     runs-on: macos-latest
     needs: buildForiOS
     steps:
+
+      - name: Setup Xcode Version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '13.4.1'
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Get version code
+        id: version_code
+        uses: lucasfe/version_code_generator@v1.0.0
+
       - name: Notify slack  
         run: |
             curl -X POST -H 'Content-type: application/json' --data '{"text": "",
@@ -307,16 +330,6 @@ jobs:
                   ]
                 }
               ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Setup Xcode Version
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '13.4.1'
-
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.ref }}
 
       - name: Checkout Certs
         uses: actions/checkout@v2
