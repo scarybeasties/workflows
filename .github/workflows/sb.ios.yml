@@ -132,8 +132,8 @@ jobs:
 
       - name: Set build number as variable
         run: |
-          value=cat buildNumber.txt
-          echo "BUILD_NUMBER=$value" >> $GITHUB_ENV 
+          value=$(<buildNumber.txt)
+          echo "BUILD_NUMBER='$value'" >> $GITHUB_ENV 
 
       - uses: mikehardy/buildcache-action@v1
 
@@ -217,8 +217,8 @@ jobs:
 
       - name: Set build number as variable
         run: |
-          value=cat buildNumber.txt
-          echo "BUILD_NUMBER=$value" >> $GITHUB_ENV 
+          value=$(<buildNumber.txt)
+          echo "BUILD_NUMBER='$value'" >> $GITHUB_ENV 
 
       - name: Notify slack  
         run: |
@@ -341,8 +341,8 @@ jobs:
 
       - name: Set build number as variable
         run: |
-          value=cat buildNumber.txt
-          echo "BUILD_NUMBER=$value" >> $GITHUB_ENV 
+          value=$(<buildNumber.txt)
+          echo "BUILD_NUMBER='$value'" >> $GITHUB_ENV 
 
       - name: Notify slack  
         run: |
