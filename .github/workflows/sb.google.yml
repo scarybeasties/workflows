@@ -31,7 +31,7 @@ jobs:
     steps:
       # Free up disk space
       - name: Free disk space
-        run: free_disk_space.sh
+        run: .github/workflows/free_disk_space.sh
       - name: Setup NDK Version
         id: setup-ndk
         if: ${{ inputs.android_ndk_version != '' }}
