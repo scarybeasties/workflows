@@ -30,13 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Free up disk space
-      - name: Free Disk Space for Android
-        run: |
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          sudo apt clean
-          docker rmi $(docker images -q)
-          df -h
+      - name: Free disk space
+        run: free_disk_space.sh
       - name: Setup NDK Version
         id: setup-ndk
         if: ${{ inputs.android_ndk_version != '' }}
