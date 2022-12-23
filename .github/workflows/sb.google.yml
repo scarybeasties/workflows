@@ -36,7 +36,7 @@ jobs:
           path: workflows
       # Free up disk space
       - name: Free disk space
-        run: workflows/free_disk_space.sh
+        run: workflows/.github/workflows/free_disk_space.sh
       - name: Setup NDK Version
         id: setup-ndk
         if: ${{ inputs.android_ndk_version != '' }}
