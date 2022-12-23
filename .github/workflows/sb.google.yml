@@ -29,9 +29,14 @@ jobs:
     name: Build Android (Google Play) Project
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout reusable workflow dir
+        uses: actions/checkout@v3
+        with:
+          repository: scarybeasties/workflows
+          path: workflows
       # Free up disk space
       - name: Free disk space
-        run: .github/workflows/free_disk_space.sh
+        run: ./workflows/free_disk_space.sh
       - name: Setup NDK Version
         id: setup-ndk
         if: ${{ inputs.android_ndk_version != '' }}
