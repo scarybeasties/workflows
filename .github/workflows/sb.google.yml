@@ -116,11 +116,11 @@ jobs:
               --data-binary @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}"
 
 
-      - name: Cleanup to avoid storage limit
-        if: always()
-        uses: geekyeggo/delete-artifact@v1
+      - name: Archive
+        uses: actions/upload-artifact@v3
         with:
-          name: build-Android
+          name: project
+          path: ${{ github.workspace }}
 
       - name: Notify slack
         run: |
