@@ -120,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: project
-          path: ${{ github.workspace }}
+          path: ${{ github.workspace }}/Library/Bee/Android/
 
       - name: Notify slack
         run: |
