@@ -103,9 +103,11 @@ jobs:
           token: ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
+        if: ${{ inputs.destination == 'Dropbox' }}
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
 
       - name: Archive to Dropbox
+        if: ${{ inputs.destination == 'Dropbox' }}
         run: |
             curl -X POST https://content.dropboxapi.com/2/files/upload \
               --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
@@ -114,13 +116,6 @@ jobs:
               --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
               --data-binary @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}"
-
-
-      - name: Archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: project
-          path: ${{ github.workspace }}/Library/Bee/Android/
 
       - name: Notify slack
         run: |
