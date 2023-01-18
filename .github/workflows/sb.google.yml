@@ -117,6 +117,13 @@ jobs:
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
               --data-binary @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}"
 
+      - name: Archive to Github
+        if: ${{ inputs.destination == 'Github' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-binary
+          path: @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}"
+
       - name: Notify slack
         run: |
             curl -X POST -H 'Content-type: application/json' --data '{"text": "",
