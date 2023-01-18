@@ -118,11 +118,11 @@ jobs:
               --data-binary @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}"
 
       - name: Archive to Github
-        if: ${{ inputs.destination == 'Github' }}
         uses: actions/upload-artifact@v3
+        if: ${{ inputs.destination == 'Github' }}
         with:
           name: android-binary
-          path: @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}"
+          path: ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}
 
       - name: Notify slack
         run: |
