@@ -33,6 +33,8 @@ jobs:
     name: Build Android (Google Play) Project
     runs-on: ubuntu-latest
     steps:
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v2
       - name: Checkout reusable workflow dir
         uses: actions/checkout@v3
         with:
