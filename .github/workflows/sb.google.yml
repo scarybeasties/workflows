@@ -26,7 +26,7 @@ on:
       offset_version_number:
         description: 'Offset Version Number Amount'
         type: string
-        default: ""
+        default: "0"
 
 jobs:
   buildForGooglePlayPlatformDevelopment:
