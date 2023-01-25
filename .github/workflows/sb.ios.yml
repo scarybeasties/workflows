@@ -38,6 +38,7 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
+          clean: false
 
       - name: Get version code
         id: version_code
