@@ -36,12 +36,23 @@ jobs:
         with:
           ndk-version: ${{ inputs.android_ndk_version }}
 
+      - uses: actions/cache@v2
+        with:
+          path: |
+            .git
+            Assets
+            Library
+            ProjectSettings
+            Temp
+          key: Library-Android-${{ github.ref }}
+
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.ref }}
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
+          clean: false
 
       - name: Checkout Build Tools
         uses: actions/checkout@v2
@@ -50,11 +61,6 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           ref: main
           path: ./AndroidBuildTools
-
-      - uses: actions/cache@v2
-        with:
-          path: Library
-          key: Library-Android
 
       - name: Get version code
         id: version_code

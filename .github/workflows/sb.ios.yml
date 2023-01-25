@@ -30,7 +30,7 @@ jobs:
             Library
             ProjectSettings
             Temp
-          key: Library-iOS
+          key: Library-iOS-${{ github.ref }}
 
       - uses: actions/checkout@v2
         with:
