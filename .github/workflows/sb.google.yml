@@ -15,6 +15,10 @@ on:
         description: 'Build AAB Bundle'
         type: string
         default: "false"
+      build_obb_bundle:
+        description: 'Build OOB'
+        type: string
+        default: "false"
       destination:
         description: 'Destination of build'
         type: string
@@ -94,11 +98,13 @@ jobs:
           buildMethod: ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild
           versioning: Custom
           version: none
-          customParameters: -returnlicense -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
+          customParameters: -nographics -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -split_APK ${{ inputs.build_obb_bundle}} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
 
       - name: Rename apk binary file 
+        if: ${{ inputs.build_obb_bundle == 'false' }}
         run: sudo mv Google/**/*.apk Google/Android.apk || true
       - name: Rename aab binary file 
+        if: ${{ inputs.build_aab_bundle == 'true' }}
         run: sudo mv Google/**/*.aab Google/Android.aab || true
 
       - name: Create the app on AppCenter if it doesnt exist
@@ -130,14 +136,14 @@ jobs:
               --header "Content-Type: application/octet-stream" \
               --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
-              --data-binary @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}"
+              --data-binary @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || inputs.build_obb_bundle == 'false' && 'Google/Android.apk' || 'Google' }}"
 
       - name: Archive to Github
         uses: actions/upload-artifact@v3
         if: ${{ inputs.destination == 'Github' }}
         with:
           name: android-binary
-          path: ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' ||  'Google/Android.apk'  }}
+          path: ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || inputs.build_obb_bundle == 'false' && 'Google/Android.apk' || 'Google' }}
 
       - name: Notify slack
         run: |
