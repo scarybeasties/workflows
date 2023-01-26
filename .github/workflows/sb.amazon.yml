@@ -45,6 +45,7 @@ jobs:
             ProjectSettings
             Temp
           key: Library-Android-${{ github.ref }}
+          restore-keys: Library-Android-
 
       - uses: actions/checkout@v2
         with:
