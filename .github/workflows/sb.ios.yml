@@ -15,6 +15,10 @@ on:
         type: string
         description: 'Destination of build'
         default: "AppCenter"
+      offset_version_number:
+        description: 'Offset Version Number Amount'
+        type: string
+        default: "0"
 
 jobs:
   buildForiOS:
@@ -60,7 +64,7 @@ jobs:
           buildMethod: ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild
           versioning: Custom
           version: none
-          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ steps.version_code.outputs.code }}
+          customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
 
       - name: Clear cache to allow recaching
         uses: actions/github-script@v6
