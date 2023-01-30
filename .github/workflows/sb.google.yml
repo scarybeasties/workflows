@@ -102,10 +102,10 @@ jobs:
 
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
-        run: sudo mv Google/**/*.apk Google/Android.apk || true
+        run: sudo cp Google/**/*.apk Google/Android.apk || true
       - name: Rename aab binary file 
         if: ${{ inputs.build_aab_bundle == 'true' }}
-        run: sudo mv Google/**/*.aab Google/Android.aab || true
+        run: sudo cp Google/**/*.aab Google/Android.aab || true
 
       - name: Create the app on AppCenter if it doesnt exist
         if: ${{ inputs.destination == 'AppCenter' }}
@@ -130,13 +130,51 @@ jobs:
       - name: Archive to Dropbox
         if: ${{ inputs.destination == 'Dropbox' }}
         run: |
-            curl -X POST https://content.dropboxapi.com/2/files/upload \
-              --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
-              --header "Dropbox-API-Arg: {\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"${{ format('/Clients/AppBuilds/{0}/{0}_{1}{2}', github.event.repository.name, steps.version_code.outputs.code,(inputs.build_aab_bundle == 'true' && '.aab' ||  '.apk'  )) }}\",\"strict_conflict\":false}" \
-              --header "Content-Type: application/octet-stream" \
-              --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
-              --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
-              --data-binary @"${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || inputs.build_obb_bundle == 'false' && 'Google/Android.apk' || 'Google' }}"
+            FOLDER_TO_UPLOAD="Google"
+            FILES_TO_UPLOAD="Google/*"
+            SPLIT_FOLDER=$FOLDER_TO_UPLOAD"_split"
+
+            for f in $FILES_TO_UPLOAD
+            do
+                FILE="$(basename $f)"
+                mkdir $SPLIT_FOLDER 
+                NEWPATH=$(echo $f | sed "s/$FOLDER_TO_UPLOAD/$SPLIT_FOLDER/")
+                echo "Processing $f file..."
+                split -db 150000000 "$f" "$NEWPATH"
+                FOLDER=$SPLIT_FOLDER"/*"
+
+                SESSION_ID=$(curl -X POST https://content.dropboxapi.com/2/files/upload_session/start \
+                --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                --header "Dropbox-API-Arg: {\"close\":false}" \
+                --header "Content-Type: application/octet-stream" \
+                | python3 -c "import sys, json; print(json.load(sys.stdin)['session_id'])")
+
+                OFFSET=0
+                FOLDER=$SPLIT_FOLDER"/*"
+                for nf in $FOLDER
+                do
+                    filesize=$(wc -c $nf | awk '{print $1}')
+                    curl -X POST https://content.dropboxapi.com/2/files/upload_session/append_v2 \
+                    --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                    --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                    --header "Dropbox-API-Arg: {\"close\":false,\"cursor\":{\"offset\":"$OFFSET",\"session_id\":\"$SESSION_ID\"}}" \
+                    --header "Content-Type: application/octet-stream" \
+                    --data-binary @"$nf"
+
+                    OFFSET=$(($OFFSET+$filesize))
+                    
+                done
+
+                curl -X POST https://content.dropboxapi.com/2/files/upload_session/finish \
+                    --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                    --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                    --header "Dropbox-API-Arg: {\"commit\":{\"autorename\":true,\"mode\":\"add\",\"mute\":false,\"path\":\"/Clients/AppBuilds/${{ github.event.repository.name }}/GooglePlay/${{ steps.version_code.outputs.code }}/$FILE\",\"strict_conflict\":false},\"cursor\":{\"offset\":$OFFSET,\"session_id\":\"$SESSION_ID\"}}" \
+                    --header "Content-Type: application/octet-stream" \
+
+                rm -rf $SPLIT_FOLDER
+            done
+
 
       - name: Archive to Github
         uses: actions/upload-artifact@v3
