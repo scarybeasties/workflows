@@ -137,7 +137,7 @@ jobs:
                 BASEDIR=$(dirname "$f")
                 SPLIT_FOLDER=$BASEDIR"_split"
                 FILE="$(basename $f)"
-                mkdir $SPLIT_FOLDER 
+                sudo mkdir $SPLIT_FOLDER 
                 NEWPATH=$(echo $f | sed "s+"$BASEDIR"+"$SPLIT_FOLDER"+")
                 echo "Processing $f file..."
                 split -db 150000000 "$f" "$NEWPATH"
