@@ -130,15 +130,15 @@ jobs:
       - name: Archive to Dropbox
         if: ${{ inputs.destination == 'Dropbox' }}
         run: |
-            FOLDER_TO_UPLOAD="Google"
-            FILES_TO_UPLOAD="Google/*"
-            SPLIT_FOLDER=$FOLDER_TO_UPLOAD"_split"
+            FILES_TO_UPLOAD="Google/**/*"
 
             for f in $FILES_TO_UPLOAD
             do
+                BASEDIR=$(dirname "$f")
+                SPLIT_FOLDER=$BASEDIR"_split"
                 FILE="$(basename $f)"
                 mkdir $SPLIT_FOLDER 
-                NEWPATH=$(echo $f | sed "s/$FOLDER_TO_UPLOAD/$SPLIT_FOLDER/")
+                NEWPATH=$(echo $f | sed "s+"$BASEDIR"+"$SPLIT_FOLDER"+")
                 echo "Processing $f file..."
                 split -db 150000000 "$f" "$NEWPATH"
                 FOLDER=$SPLIT_FOLDER"/*"
