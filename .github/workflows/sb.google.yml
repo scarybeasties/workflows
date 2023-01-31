@@ -175,7 +175,7 @@ jobs:
                     --header "Content-Type: application/octet-stream" \
                     --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
 
-                rm -rf $SPLIT_FOLDER
+                sudo rm -rf $SPLIT_FOLDER
             done
 
 
