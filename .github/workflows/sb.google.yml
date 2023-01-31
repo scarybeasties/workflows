@@ -148,6 +148,7 @@ jobs:
                 --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
                 --header "Dropbox-API-Arg: {\"close\":false}" \
                 --header "Content-Type: application/octet-stream" \
+                --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
                 | python3 -c "import sys, json; print(json.load(sys.stdin)['session_id'])")
 
                 OFFSET=0
@@ -160,6 +161,7 @@ jobs:
                     --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
                     --header "Dropbox-API-Arg: {\"close\":false,\"cursor\":{\"offset\":"$OFFSET",\"session_id\":\"$SESSION_ID\"}}" \
                     --header "Content-Type: application/octet-stream" \
+                    --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
                     --data-binary @"$nf"
 
                     OFFSET=$(($OFFSET+$filesize))
@@ -171,6 +173,7 @@ jobs:
                     --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
                     --header "Dropbox-API-Arg: {\"commit\":{\"autorename\":true,\"mode\":\"add\",\"mute\":false,\"path\":\"/Clients/AppBuilds/${{ github.event.repository.name }}/GooglePlay/${{ steps.version_code.outputs.code }}/$FILE\",\"strict_conflict\":false},\"cursor\":{\"offset\":$OFFSET,\"session_id\":\"$SESSION_ID\"}}" \
                     --header "Content-Type: application/octet-stream" \
+                    --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
 
                 rm -rf $SPLIT_FOLDER
             done
