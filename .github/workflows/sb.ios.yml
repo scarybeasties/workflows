@@ -25,7 +25,6 @@ jobs:
     name: Build iOS Project
     runs-on: ubuntu-latest
     steps:
-
       - uses: actions/cache@v2
         with:
           path: |
@@ -65,27 +64,6 @@ jobs:
           versioning: Custom
           version: none
           customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
-
-      - name: Clear cache to allow recaching
-        uses: actions/github-script@v6
-        with:
-          script: |
-            console.log("About to clear")
-            const caches = await github.rest.actions.getActionsCacheList({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-            for (const cache of caches.data.actions_caches) {
-              if (cache.id == 'Library-iOS')
-              {
-                github.rest.actions.deleteActionsCacheById({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  cache_id: cache.id,
-                })
-              }
-            }
-            console.log("Clear completed")
 
       - uses: actions/upload-artifact@v2
         with:
@@ -141,8 +119,6 @@ jobs:
           name: buildNumber
           path: buildNumber.txt
 
-      - uses: mikehardy/buildcache-action@v1
-
       - name: Fix File Permissions and Run fastlane
         env:
           APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
@@ -175,11 +151,6 @@ jobs:
           bundle install
           bundle exec fastlane ios BuildAppCenter
 
-      - name: Cleanup to avoid storage limit
-        if: always()
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: build-iOS
 
       - name: Notify slack  
         run: |
