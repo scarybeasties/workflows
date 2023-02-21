@@ -23,7 +23,7 @@ on:
 jobs:
   buildForiOS:
     name: Build iOS Project
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/cache@v2
         with:
@@ -65,10 +65,31 @@ jobs:
           version: none
           customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-iOS
+          path: build/iOS
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: buildNumber
+          path: buildNumber.txt
+
+  releaseToAppCenter:
+    if: ${{ inputs.destination == 'AppCenter' }}
+    name: Release to App Center
+    runs-on: macos-latest
+    needs: buildForiOS
+    steps:
       - name: Setup Xcode Version
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '13.4.1'
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
 
       - name: Checkout Certs
         uses: actions/checkout@v2
@@ -85,6 +106,18 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           ref: main
           path: ./fastlane
+
+      - name: Download iOS Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build-iOS
+          path: build/iOS
+
+      - name: Download buildNumber Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: buildNumber
+          path: buildNumber.txt
 
       - name: Fix File Permissions and Run fastlane
         env:
