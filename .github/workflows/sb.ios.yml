@@ -112,7 +112,7 @@ jobs:
           # Path to Derived Data
           path: .local_derived_data
           # Restore cache by Podfile.lock hashsum  
-          key: ${{ runner.os }}-pods-derived-data-${{ hashFiles('**/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-derived-data-${{ hashFiles(format('{0}/build/iOS/Podfile.lock'', github.workspace)) }}
 
 
       - name: Download iOS Artifact
