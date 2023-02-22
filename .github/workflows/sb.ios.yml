@@ -109,9 +109,11 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: |
-            build/iOS
-          key: Build-iOS-${{ github.ref }}
+          # Path to Derived Data
+          path: .local_derived_data
+          # Restore cache by Podfile.lock hashsum  
+          key: ${{ runner.os }}-pods-derived-data-${{ hashFiles('**/Podfile.lock') }}
+
 
       - name: Download iOS Artifact
         uses: actions/download-artifact@v2
