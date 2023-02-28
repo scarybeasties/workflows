@@ -59,11 +59,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            .git
-            Assets
             Library
-            ProjectSettings
-            Temp
           key: Library-Android-${{ github.ref }}
           restore-keys: Library-Android-
 
