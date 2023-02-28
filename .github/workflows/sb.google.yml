@@ -130,55 +130,51 @@ jobs:
       - name: Archive to Dropbox
         if: ${{ inputs.destination == 'Dropbox' }}
         run: |
-            FILES_TO_UPLOAD="Google/**/*"
-
+            FILES_TO_UPLOAD="Google/**/*.{aab,apk,obb}"
             for f in $FILES_TO_UPLOAD
             do
-                if [[! -d $f ]];
-                then
-                  BASEDIR=$(dirname "$f")
-                  SPLIT_FOLDER=$BASEDIR"_split"
-                  FILE="$(basename $f)"
-                  sudo mkdir $SPLIT_FOLDER 
-                  NEWPATH=$(echo $f | sed "s+"$BASEDIR"+"$SPLIT_FOLDER"+")
-                  echo "Processing $f file..."
-                  sudo split -db 150000000 "$f" "$NEWPATH"
-                  FOLDER=$SPLIT_FOLDER"/*"
+                BASEDIR=$(dirname "$f")
+                SPLIT_FOLDER=$BASEDIR"_split"
+                FILE="$(basename $f)"
+                sudo mkdir $SPLIT_FOLDER 
+                NEWPATH=$(echo $f | sed "s+"$BASEDIR"+"$SPLIT_FOLDER"+")
+                echo "Processing $f file..."
+                sudo split -db 150000000 "$f" "$NEWPATH"
+                FOLDER=$SPLIT_FOLDER"/*"
 
-                  SESSION_ID=$(curl -X POST https://content.dropboxapi.com/2/files/upload_session/start \
-                  --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
-                  --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
-                  --header "Dropbox-API-Arg: {\"close\":false}" \
-                  --header "Content-Type: application/octet-stream" \
-                  --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
-                  | python3 -c "import sys, json; print(json.load(sys.stdin)['session_id'])")
+                SESSION_ID=$(curl -X POST https://content.dropboxapi.com/2/files/upload_session/start \
+                --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                --header "Dropbox-API-Arg: {\"close\":false}" \
+                --header "Content-Type: application/octet-stream" \
+                --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+                | python3 -c "import sys, json; print(json.load(sys.stdin)['session_id'])")
 
-                  OFFSET=0
-                  FOLDER=$SPLIT_FOLDER"/*"
-                  for nf in $FOLDER
-                  do
-                      filesize=$(wc -c $nf | awk '{print $1}')
-                      curl -X POST https://content.dropboxapi.com/2/files/upload_session/append_v2 \
-                      --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
-                      --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
-                      --header "Dropbox-API-Arg: {\"close\":false,\"cursor\":{\"offset\":"$OFFSET",\"session_id\":\"$SESSION_ID\"}}" \
-                      --header "Content-Type: application/octet-stream" \
-                      --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
-                      --data-binary @"$nf"
+                OFFSET=0
+                FOLDER=$SPLIT_FOLDER"/*"
+                for nf in $FOLDER
+                do
+                    filesize=$(wc -c $nf | awk '{print $1}')
+                    curl -X POST https://content.dropboxapi.com/2/files/upload_session/append_v2 \
+                    --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                    --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                    --header "Dropbox-API-Arg: {\"close\":false,\"cursor\":{\"offset\":"$OFFSET",\"session_id\":\"$SESSION_ID\"}}" \
+                    --header "Content-Type: application/octet-stream" \
+                    --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+                    --data-binary @"$nf"
 
-                      OFFSET=$(($OFFSET+$filesize))
-                      
-                  done
+                    OFFSET=$(($OFFSET+$filesize))
+                    
+                done
 
-                  curl -X POST https://content.dropboxapi.com/2/files/upload_session/finish \
-                      --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
-                      --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
-                      --header "Dropbox-API-Arg: {\"commit\":{\"autorename\":true,\"mode\":\"add\",\"mute\":false,\"path\":\"/Clients/AppBuilds/${{ github.event.repository.name }}/GooglePlay/${{ steps.version_code.outputs.code }}/$FILE\",\"strict_conflict\":false},\"cursor\":{\"offset\":$OFFSET,\"session_id\":\"$SESSION_ID\"}}" \
-                      --header "Content-Type: application/octet-stream" \
-                      --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+                curl -X POST https://content.dropboxapi.com/2/files/upload_session/finish \
+                    --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                    --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                    --header "Dropbox-API-Arg: {\"commit\":{\"autorename\":true,\"mode\":\"add\",\"mute\":false,\"path\":\"/Clients/AppBuilds/${{ github.event.repository.name }}/GooglePlay/${{ steps.version_code.outputs.code }}/$FILE\",\"strict_conflict\":false},\"cursor\":{\"offset\":$OFFSET,\"session_id\":\"$SESSION_ID\"}}" \
+                    --header "Content-Type: application/octet-stream" \
+                    --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
 
-                  sudo rm -rf $SPLIT_FOLDER
-                fi
+                sudo rm -rf $SPLIT_FOLDER
             done
 
 
