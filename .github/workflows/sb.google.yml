@@ -58,9 +58,16 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: Library
+          path: |
+            .git
+            Assets
+            Library
+            ProjectSettings
+            Temp
           key: Library-Android-${{ github.ref }}
-          restore-keys: Library-Android-
+          restore-keys: |
+            Library-Android-
+            Library-
 
       - uses: actions/checkout@v2
         with:
@@ -125,7 +132,7 @@ jobs:
       - name: Archive to Dropbox
         if: ${{ inputs.destination == 'Dropbox' }}
         run: |
-            FILES_TO_UPLOAD="Google/**/*"
+            FILES_TO_UPLOAD="Google/**/*.{aab,apk,obb}"
             for f in $FILES_TO_UPLOAD
             do
                 BASEDIR=$(dirname "$f")
