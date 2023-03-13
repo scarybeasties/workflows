@@ -159,6 +159,17 @@ jobs:
           bundle install
           bundle exec fastlane ios BuildAppCenter
 
+      - name: Cleanup to avoid storage limit
+        if: always()
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: build-iOS
+
+      - name: Cleanup to avoid storage limit
+        if: always()
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: buildNumber
 
       - name: Notify slack  
         run: |
@@ -279,6 +290,12 @@ jobs:
         with:
           name: build-iOS
 
+      - name: Cleanup to avoid storage limit
+        if: always()
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: buildNumber
+
       - name: Notify slack  
         run: |
             curl -X POST -H 'Content-type: application/json' --data '{"text": "",
@@ -397,6 +414,12 @@ jobs:
         uses: geekyeggo/delete-artifact@v1
         with:
           name: build-iOS
+
+      - name: Cleanup to avoid storage limit
+        if: always()
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: buildNumber
 
       - name: Notify slack  
         run: |
