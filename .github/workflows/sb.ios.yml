@@ -11,6 +11,10 @@ on:
         type: string
         description: 'Bundle ID to use'
         default: ""
+      apple_id:
+        type: string
+        description: 'Apple id of the clients store page'
+        default: ""
       destination:
         type: string
         description: 'Destination of build'
@@ -400,6 +404,7 @@ jobs:
 
           BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
           BUNDLE_ID: ${{ inputs.bundle_id }}
+          APPLE_ID: ${{ inputs.apple_id }}
           PROJECT_NAME: ${{ github.event.repository.name }}
 
         run: |
