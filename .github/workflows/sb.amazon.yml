@@ -15,6 +15,10 @@ on:
         description: 'Build AAB Bundle'
         type: string
         default: "false"
+      build_obb_bundle:
+        description: 'Build OOB'
+        type: string
+        default: "false"
       destination:
         description: 'Destination of build'
         type: string
@@ -29,10 +33,22 @@ on:
         default: "0"
 
 jobs:
-  buildForGooglePlayPlatformDevelopment:
+  buildForAmazonPlatformDevelopment:
     name: Build Android (Amazon) Project
     runs-on: ubuntu-latest
     steps:
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v2
+
+      - name: Checkout reusable workflow dir
+        uses: actions/checkout@v3
+        with:
+          repository: scarybeasties/workflows
+          path: workflows
+
+      # Free up disk space
+      - name: Free disk space
+        run: workflows/.github/workflows/free_disk_space.sh
       - name: Setup NDK Version
         id: setup-ndk
         if: ${{ inputs.android_ndk_version != '' }}
@@ -43,13 +59,14 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            .git
             Assets
             Library
             ProjectSettings
             Temp
           key: Library-Android-${{ github.ref }}
-          restore-keys: Library-Android-
+          restore-keys: |
+            Library-Android-
+            Library-
 
       - uses: actions/checkout@v2
         with:
@@ -82,14 +99,14 @@ jobs:
           buildMethod: ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild
           versioning: Custom
           version: none
-          customParameters: -platform Amazon -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }}
+          customParameters: -nographics -platform Amazon -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -split_APK ${{ inputs.build_obb_bundle}} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
 
       - name: Rename apk binary file 
-        if: ${{ inputs.destination == 'AppCenter' }}
-        run: sudo mv Google/**/*.apk Google/Android.apk || true
+        if: ${{ inputs.build_obb_bundle == 'false' }}
+        run: sudo cp Amazon/**/*.apk Amazon/Android.apk || true
       - name: Rename aab binary file 
-        if: ${{ inputs.destination == 'AppCenter' }}
-        run: sudo mv Google/**/*.aab Google/Android.aab || true
+        if: ${{ inputs.build_aab_bundle == 'true' }}
+        run: sudo cp Amazon/**/*.aab Amazon/Android.aab || true
 
       - name: Create the app on AppCenter if it doesnt exist
         if: ${{ inputs.destination == 'AppCenter' }}
@@ -104,26 +121,72 @@ jobs:
         uses: avocaddo/AppCenter-Github-Action@v1.0.2
         continue-on-error: true
         with:
-          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators --silent
+          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Amazon/Android.aab' || 'Amazon/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators --silent
           token: ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
+        if: ${{ inputs.destination == 'Dropbox' }}
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
 
       - name: Archive to Dropbox
         if: ${{ inputs.destination == 'Dropbox' }}
-        uses: aTable/deploy-to-dropbox@v1.0.7
-        with:
-          GLOB: ${{ inputs.build_aab_bundle == 'true' && 'Google/**/*.aab' ||  'Google/**/*.apk'  }} 
-          DROPBOX_ACCESS_TOKEN: ${{ env.DB_ACCES_TOKEN }}
-          DROPBOX_DESTINATION_PATH_PREFIX: ${{ format('/AppBuilds/{0}/', github.event.repository.name) }}
-          DEBUG: true
+        run: |
+            FILES_TO_UPLOAD="Amazon/**/*"
+            for f in $FILES_TO_UPLOAD
+            do
+                if [[ ! -d "$f" ]]; then
+                    BASEDIR=$(dirname "$f")
+                    SPLIT_FOLDER=$BASEDIR"_split"
+                    FILE="$(basename $f)"
+                    sudo mkdir $SPLIT_FOLDER 
+                    NEWPATH=$(echo $f | sed "s+"$BASEDIR"+"$SPLIT_FOLDER"+")
+                    echo "Processing $f file..."
+                    sudo split -db 150000000 "$f" "$NEWPATH"
+                    FOLDER=$SPLIT_FOLDER"/*"
 
-      - name: Cleanup to avoid storage limit
-        if: always()
-        uses: geekyeggo/delete-artifact@v1
+                    SESSION_ID=$(curl -X POST https://content.dropboxapi.com/2/files/upload_session/start \
+                    --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                    --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                    --header "Dropbox-API-Arg: {\"close\":false}" \
+                    --header "Content-Type: application/octet-stream" \
+                    --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+                    | python3 -c "import sys, json; print(json.load(sys.stdin)['session_id'])")
+
+                    OFFSET=0
+                    FOLDER=$SPLIT_FOLDER"/*"
+                    for nf in $FOLDER
+                    do
+                        filesize=$(wc -c $nf | awk '{print $1}')
+                        curl -X POST https://content.dropboxapi.com/2/files/upload_session/append_v2 \
+                        --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                        --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                        --header "Dropbox-API-Arg: {\"close\":false,\"cursor\":{\"offset\":"$OFFSET",\"session_id\":\"$SESSION_ID\"}}" \
+                        --header "Content-Type: application/octet-stream" \
+                        --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+                        --data-binary @"$nf"
+
+                        OFFSET=$(($OFFSET+$filesize))
+                        
+                    done
+
+                    curl -X POST https://content.dropboxapi.com/2/files/upload_session/finish \
+                        --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                        --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                        --header "Dropbox-API-Arg: {\"commit\":{\"autorename\":true,\"mode\":\"add\",\"mute\":false,\"path\":\"/Clients/AppBuilds/${{ github.event.repository.name }}/Amazon/${{ steps.version_code.outputs.code }}/$FILE\",\"strict_conflict\":false},\"cursor\":{\"offset\":$OFFSET,\"session_id\":\"$SESSION_ID\"}}" \
+                        --header "Content-Type: application/octet-stream" \
+                        --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+
+                    sudo rm -rf $SPLIT_FOLDER
+                fi
+            done
+
+
+      - name: Archive to Github
+        uses: actions/upload-artifact@v3
+        if: ${{ inputs.destination == 'Github' }}
         with:
-          name: build-Android
+          name: ${{ github.event.repository.name }}-${{ steps.version_code.outputs.code }}
+          path: ${{ inputs.build_aab_bundle == 'true' && 'Amazon/Android.aab' || inputs.build_obb_bundle == 'false' && 'Amazon/Android.apk' || 'Amazon' }}
 
       - name: Notify slack
         run: |
@@ -141,3 +204,4 @@ jobs:
                   ]
                 }
               ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
+
