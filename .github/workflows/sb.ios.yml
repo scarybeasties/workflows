@@ -416,6 +416,12 @@ jobs:
           bundle install
           bundle exec fastlane ios BuildEOneTestFlight
 
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: ios-project
+          path: build/iOS/
+
       - name: Cleanup to avoid storage limit
         if: always()
         uses: geekyeggo/delete-artifact@v1
