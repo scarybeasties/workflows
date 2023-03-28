@@ -423,7 +423,7 @@ jobs:
           path: build/iOS/
 
       - name: Cleanup to avoid storage limit
-        if: always()
+        if: success()
         uses: geekyeggo/delete-artifact@v1
         with:
           name: build-iOS
