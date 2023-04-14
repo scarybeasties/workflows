@@ -64,18 +64,18 @@ jobs:
         id: version_code
         uses: lucasfe/version_code_generator@v1.0.0
 
+      - name: Authenticate with private NPM package
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PAT }}" > ~/.npmrc
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          token: ${{ secrets.GH_PAT }}
-          node-version: 16
+          node-version: 18
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
       
       - name: Setup NPM
         run: npm ci --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
       - name: NPM Rebuild
         run: npm rebuild && npm run prepare --if-present
 
