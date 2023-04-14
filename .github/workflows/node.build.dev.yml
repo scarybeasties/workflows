@@ -45,7 +45,6 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          token: ${{ secrets.GH_PAT }}
           node-version: 18
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
