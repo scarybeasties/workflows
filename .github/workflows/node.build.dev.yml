@@ -49,6 +49,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
       
+      - name: Authenticate with private NPM package
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.GH_PAT }}" > ~/.npmrc
+
       - name: Setup NPM
         run: npm ci
       - run: npm rebuild && npm run prepare --if-present
