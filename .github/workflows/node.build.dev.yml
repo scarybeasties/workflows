@@ -12,9 +12,13 @@ on:
         type: string
         default: ""
       build_language:
-        description: 'build_language'
+        description: 'Build language'
         type: string
         default: "en"
+      folder_to_deploy_from:
+        description: 'Folder To Deploy From'
+        type: string
+        default: "dist-en"
 
 jobs:
   build:
@@ -25,6 +29,13 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.NODE_AUDIO_SSH_KEY }}
+
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v6
+
+      - name: Update Deployment Directory
+        run: deployment_directory=${deployment_directory/${branch}/${{ steps.branch-name.outputs.current_branch }}}
 
       - uses: actions/checkout@v3
         with:
@@ -63,7 +74,7 @@ jobs:
           server: ftp.scarybserver.com
           username: github@scarybserver.com
           password: ${{ secrets.ftp_password }}
-          local-dir: dist-en/
+          local-dir: ${{ inputs.folder_to_deploy_from }}/
           server-dir: ${{ inputs.deployment_directory }}/${{ steps.version_code.outputs.code }}/
 
       - name: Notify slack
