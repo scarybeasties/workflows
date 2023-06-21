@@ -1,7 +1,7 @@
 name: Node - Build Production
 
 on:
-  workflow_call: 
+  workflow_call:
     inputs:
       include_iframe:
         description: 'Include iFrame'
@@ -62,7 +62,7 @@ jobs:
           node-version: 18
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
-      
+
       - name: Setup NPM
         run: npm ci --ignore-scripts
       - run: npm rebuild && npm run prepare --if-present
@@ -71,7 +71,7 @@ jobs:
       - name: Zip Artifacts
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r dist-en.zip dist-en
+          args: zip -qq -r dist-en.zip ${{ inputs.folder_to_deploy_from }}
 
       - name: Get dropbox token
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
