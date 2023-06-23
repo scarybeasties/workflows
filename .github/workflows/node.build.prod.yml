@@ -100,4 +100,5 @@ jobs:
         if: ${{ success() }}
         with:
           webhook_url: ${{ secrets.MSTEAMS_WEBHOOK }}
-          overwrite: "{@context: `http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ steps.version_code.outputs.code }}`}"
+          job: ${{ toJson(job) }}
+          overwrite: "{summary: `http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ steps.version_code.outputs.code }}`}"
