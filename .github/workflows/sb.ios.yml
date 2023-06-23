@@ -169,6 +169,9 @@ jobs:
           name: ios-project
           path: build/iOS/
 
+      - name: Read buildNumber file
+        id: version_code
+        run: echo "code=$(cat buildNumber.txt)" >> $GITHUB_OUTPUT
 
       - name: Cleanup to avoid storage limit
         if: always()
@@ -182,22 +185,13 @@ jobs:
         with:
           name: buildNumber
 
-      - name: Notify slack  
+      - name: Notify Teams
+        if: ${{ success() }}
         run: |
-            curl -X POST -H 'Content-type: application/json' --data '{"text": "",
-              "attachments": [
-                {
-                  "title": "iOS AppCenter Build complete",
-                  "color": "28a745",
-                  "fields": [
-                    {
-                      "title": "Project",
-                      "short": true,
-                      "value": "${{ github.event.repository.name }} Build ${{ env.BUILD_NUMBER }}"
-                    }
-                  ]
-                }
-              ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
+           cat << EOF > message.json
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS AppCenter Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS AppCenter Build Deployed! 🤖","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           EOF
+           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
   releaseToSBTestflight:
     if: ${{ inputs.destination == 'SB Testflight' }}
@@ -222,22 +216,16 @@ jobs:
           name: buildNumber
           path: buildNumber.txt
 
-      - name: Notify slack  
+      - name: Read buildNumber file
+        id: version_code
+        run: echo "code=$(cat buildNumber.txt)" >> $GITHUB_OUTPUT
+
+      - name: Notify Teams
         run: |
-            curl -X POST -H 'Content-type: application/json' --data '{"text": "",
-              "attachments": [
-                {
-                  "title": "iOS SB Testflight Build started",
-                  "color": "ffa200",
-                  "fields": [
-                    {
-                      "title": "Project",
-                      "short": true,
-                      "value": "${{ github.event.repository.name }} Build ${{ steps.version_code.outputs.code }}"
-                    }
-                  ]
-                }
-              ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
+           cat << EOF > message.json
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS SB Testflight Build started!","themeColor":"ffa200","title":"$GITHUB_REPOSITORY iOS SB Testflight Build Started","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           EOF
+           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - name: Checkout Certs
         uses: actions/checkout@v2
@@ -307,22 +295,13 @@ jobs:
         with:
           name: buildNumber
 
-      - name: Notify slack  
+      - name: Notify Teams
+        if: ${{ success() }}
         run: |
-            curl -X POST -H 'Content-type: application/json' --data '{"text": "",
-              "attachments": [
-                {
-                  "title": "iOS SB Testflight Build complete",
-                  "color": "28a745",
-                  "fields": [
-                    {
-                      "title": "Project",
-                      "short": true,
-                      "value": "${{ github.event.repository.name }} Build ${{ steps.version_code.outputs.code }}"
-                    }
-                  ]
-                }
-              ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
+           cat << EOF > message.json
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           EOF
+           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
   releaseToEOneTestflight:
     if: ${{ inputs.destination == 'EOne Testflight' }}
@@ -347,22 +326,16 @@ jobs:
           name: buildNumber
           path: buildNumber.txt
 
-      - name: Notify slack  
+      - name: Read buildNumber file
+        id: version_code
+        run: echo "code=$(cat buildNumber.txt)" >> $GITHUB_OUTPUT
+
+      - name: Notify Teams
         run: |
-            curl -X POST -H 'Content-type: application/json' --data '{"text": "",
-              "attachments": [
-                {
-                  "title": "iOS eOne Testflight Build started",
-                  "color": "ffa200",
-                  "fields": [
-                    {
-                      "title": "Project",
-                      "short": true,
-                      "value": "${{ github.event.repository.name }} Build ${{ steps.version_code.outputs.code }}"
-                    }
-                  ]
-                }
-              ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
+           cat << EOF > message.json
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS eOne Testflight Build started!","themeColor":"ffa200","title":"$GITHUB_REPOSITORY iOS eOne Testflight Build Started","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           EOF
+           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - name: Checkout Certs
         uses: actions/checkout@v2
@@ -441,19 +414,10 @@ jobs:
         with:
           name: buildNumber
 
-      - name: Notify slack  
+      - name: Notify Teams
+        if: ${{ success() }}
         run: |
-            curl -X POST -H 'Content-type: application/json' --data '{"text": "",
-              "attachments": [
-                {
-                  "title": "iOS eOne Testflight Build complete",
-                  "color": "28a745",
-                  "fields": [
-                    {
-                      "title": "Project",
-                      "short": true,
-                      "value": "${{ github.event.repository.name }} Build ${{ steps.version_code.outputs.code }}"
-                    }
-                  ]
-                }
-              ]}' ${{ secrets.SLACK_WEBHOOK_URL }}
+           cat << EOF > message.json
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS eOne Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS eOne Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           EOF
+           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
