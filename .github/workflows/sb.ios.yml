@@ -163,12 +163,6 @@ jobs:
           bundle install
           bundle exec fastlane ios BuildAppCenter
 
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: ios-project
-          path: build/iOS/
-
       - name: Read buildNumber file
         id: version_code
         run: echo "code=$(cat buildNumber.txt)" >> $GITHUB_OUTPUT
@@ -282,6 +276,13 @@ jobs:
           cd fastlane
           bundle install
           bundle exec fastlane ios BuildSBTestFlight
+
+      - uses: actions/upload-artifact@v2  
+        if: success()
+        with:
+          name: ios-project
+          path: build/iOS/
+
 
       - name: Cleanup to avoid storage limit
         if: always()
