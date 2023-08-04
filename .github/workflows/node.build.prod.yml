@@ -96,7 +96,7 @@ jobs:
               echo "path=$file" >> $GITHUB_OUTPUT
               break
               fi
-          fi
+          done
 
       - name: Archive Sky Kids Zip to Dropbox
         if: ${{ steps.skyKidsZip.exists }}
