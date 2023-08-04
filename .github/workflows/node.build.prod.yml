@@ -68,12 +68,10 @@ jobs:
       - run: npm rebuild && npm run prepare --if-present
       - run: npm run build:prod
 
-      - name: Install zip
+      - name: Zip Artifacts
         uses: montudor/action-zip@v1
-
-      - name: Zip output
-        run: zip -qq -r dist-en.zip *
-        working-directory: ${{ inputs.folder_to_deploy_from }}
+        with:
+          args: zip -qq -r dist-en.zip ${{ inputs.folder_to_deploy_from }}
 
       - name: Get dropbox token
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
@@ -97,10 +95,15 @@ jobs:
               echo "$file"
               if [ -f "${file}" ]; then
               echo "exists=1" >> "$GITHUB_OUTPUT"
-              echo "path=$file" >> "$GITHUB_OUTPUT"
               break
               fi
           done
+
+      - name: Zip Sky Artifacts
+        if: ${{ steps.skyKidsZip.outputs.exists == 1 }}
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r dist-sky.zip dist/sky
 
       - name: Archive Sky Kids Zip to Dropbox
         if: ${{ steps.skyKidsZip.outputs.exists == 1 }}
@@ -111,7 +114,7 @@ jobs:
               --header "Content-Type: application/octet-stream" \
               --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
-              --data-binary ${{ steps.skyKidsZip.outputs.path }}
+              --data-binary @"dist-sky.zip"
 
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
