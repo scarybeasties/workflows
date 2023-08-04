@@ -99,15 +99,15 @@ jobs:
           fi
 
       - name: Archive Sky Kids Zip to Dropbox
-        if: steps.skyKidsZip.exists
+        if: $${ steps.skyKidsZip.exists }}
         run: |
             curl -X POST https://content.dropboxapi.com/2/files/upload \
               --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
-              --header "Dropbox-API-Arg: {\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"${{ format('/Clients/AppBuilds/{0}/{0}_{1}.zip', github.event.repository.name+"SkyKidsApp", steps.version_code.outputs.code) }}\",\"strict_conflict\":false}" \
+              --header "Dropbox-API-Arg: {\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"${{ format('/Clients/AppBuilds/{0}/{0}_{1}.zip', github.event.repository.name+\"SkyKidsApp\", steps.version_code.outputs.code) }}\",\"strict_conflict\":false}" \
               --header "Content-Type: application/octet-stream" \
               --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
-              --data-binary steps.skyKidsZip.path
+              --data-binary ${{ steps.skyKidsZip.path }}
 
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
@@ -122,7 +122,7 @@ jobs:
         if: ${{ success() }}
         run: |
            extras="{}"
-           if [[ steps.skyKidsZip.exists == "true" ]]
+           if [[ ${{ steps.skyKidsZip.exists }} == "true" ]]
            then
             extras+="{\"name\":\"Sky Kids Archive Location\",\"value\":\"${{ format('/Clients/AppBuilds/{0}/{0}_{1}.zip', github.event.repository.name+\"SkyKidsApp\", steps.version_code.outputs.code) }}\"}"
            fi
