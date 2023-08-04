@@ -92,9 +92,9 @@ jobs:
         id: skyKidsZip
         shell: bash
         run: |
-            if [ -d "./dist/skykids" ]  then
-            echo "exists=1" >> "$GITHUB_OUTPUT"
-            fi
+          if [ -d "./dist/skykids" ] then
+          echo "exists=1" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Zip Sky Artifacts
         if: ${{ steps.skyKidsZip.outputs.exists == 1 }}
