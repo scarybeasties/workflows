@@ -103,7 +103,7 @@ jobs:
         run: |
             curl -X POST https://content.dropboxapi.com/2/files/upload \
               --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
-              --header "Dropbox-API-Arg: {\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"${{ format('/Clients/AppBuilds/{0}/{0}_{1}.zip', github.event.repository.name+\"SkyKidsApp\", steps.version_code.outputs.code) }}\",\"strict_conflict\":false}" \
+              --header "Dropbox-API-Arg: {\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"${{ format('/Clients/AppBuilds/{0}{1}/{0}{1}_{2}.zip', github.event.repository.name, \"SkyKidsApp\", steps.version_code.outputs.code) }}\",\"strict_conflict\":false}" \
               --header "Content-Type: application/octet-stream" \
               --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
@@ -124,7 +124,7 @@ jobs:
            extras="{}"
            if [[ ${{ steps.skyKidsZip.exists }} == "true" ]]
            then
-            extras+="{\"name\":\"Sky Kids Archive Location\",\"value\":\"${{ format('/Clients/AppBuilds/{0}/{0}_{1}.zip', github.event.repository.name+\"SkyKidsApp\", steps.version_code.outputs.code) }}\"}"
+            extras+="{\"name\":\"Sky Kids Archive Location\",\"value\":\"${{ format('/Clients/AppBuilds/{0}{1}/{0}{1}_{2}.zip', github.event.repository.name,\"SkyKidsApp\", steps.version_code.outputs.code) }}\"}"
            fi
            cat << EOF > message.json
            {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Production build deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY production build deployed 🚀","sections":[{"facts":[{"name":"URL:","value":"http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ steps.version_code.outputs.code }}"},{"name":"Dropbox Archive Location","value":"${{ format('/Clients/AppBuilds/{0}/{0}_{1}.zip', github.event.repository.name, steps.version_code.outputs.code) }}"},$extras,{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
