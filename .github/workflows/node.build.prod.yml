@@ -92,14 +92,14 @@ jobs:
           for file in ./dist/sky/*.zip
           do
               if [ -f "${file}" ]; then
-              echo "exists=true" >> $GITHUB_OUTPUT
+              echo "exists=1" >> $GITHUB_OUTPUT
               echo "path=$file" >> $GITHUB_OUTPUT
               break
               fi
           done
 
       - name: Archive Sky Kids Zip to Dropbox
-        if: ${{ steps.skyKidsZip.exists }}
+        if: ${{ steps.skyKidsZip.exists == 1 }}
         run: |
             curl -X POST https://content.dropboxapi.com/2/files/upload \
               --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
@@ -122,9 +122,9 @@ jobs:
         if: ${{ success() }}
         run: |
            extras="{}"
-           if [[ ${{ steps.skyKidsZip.exists }} == "true" ]]
+           if [[ ${{ steps.skyKidsZip.exists }} == 1 ]]
            then
-            extras+="{\"name\":\"Sky Kids Archive Location\",\"value\":\"${{ format('/Clients/AppBuilds/{0}{1}/{0}{1}_{2}.zip', github.event.repository.name,'SkyKidsApp', steps.version_code.outputs.code) }}\"}"
+            extras="{\"name\":\"Sky Kids Archive Location\",\"value\":\"${{ format('/Clients/AppBuilds/{0}{1}/{0}{1}_{2}.zip', github.event.repository.name,'SkyKidsApp', steps.version_code.outputs.code) }}\"}"
            fi
            cat << EOF > message.json
            {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Production build deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY production build deployed 🚀","sections":[{"facts":[{"name":"URL:","value":"http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ steps.version_code.outputs.code }}"},{"name":"Dropbox Archive Location","value":"${{ format('/Clients/AppBuilds/{0}/{0}_{1}.zip', github.event.repository.name, steps.version_code.outputs.code) }}"},$extras,{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
