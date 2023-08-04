@@ -99,7 +99,7 @@ jobs:
           fi
 
       - name: Archive Sky Kids Zip to Dropbox
-        if: $${ steps.skyKidsZip.exists }}
+        if: ${{ steps.skyKidsZip.exists }}
         run: |
             curl -X POST https://content.dropboxapi.com/2/files/upload \
               --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
