@@ -89,11 +89,11 @@ jobs:
       - name: Check if Sky Kids Zip File Exists
         id: skyKidsZip
         run: |
-          for file in ./dist/sky/*.zip
+          for file in /dist/sky/*.zip
           do
               if [ -f "${file}" ]; then
-              echo "exists=1" >> $GITHUB_OUTPUT
-              echo "path=$file" >> $GITHUB_OUTPUT
+              echo "exists=1" >> "$GITHUB_OUTPUT"
+              echo "path=$file" >> "$GITHUB_OUTPUT"
               break
               fi
           done
