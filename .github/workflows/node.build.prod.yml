@@ -92,7 +92,8 @@ jobs:
         id: skyKidsZip
         shell: bash
         run: |
-          if [ -d "./dist/skykids" ] then
+          if [ -d "./dist/skykids" ]
+          then
           echo "exists=1" >> "$GITHUB_OUTPUT"
           fi
 
