@@ -90,7 +90,7 @@ jobs:
         id: skyKidsZip
         shell: bash
         run: |
-          for file in /dist/sky/*.zip
+          for file in ./dist/sky/*.zip;
           do
               echo "$file"
               if [ -f "${file}" ]; then
