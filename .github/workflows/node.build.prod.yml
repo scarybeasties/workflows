@@ -92,6 +92,7 @@ jobs:
         run: |
           for file in /dist/sky/*.zip
           do
+              echo "$file"
               if [ -f "${file}" ]; then
               echo "exists=1" >> "$GITHUB_OUTPUT"
               echo "path=$file" >> "$GITHUB_OUTPUT"
