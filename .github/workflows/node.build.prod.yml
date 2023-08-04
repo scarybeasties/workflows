@@ -88,15 +88,16 @@ jobs:
 
       - name: Check if Sky Kids Zip File Exists
         id: skyKidsZip
-        run: |
-          for file in /dist/sky/*.zip
-          do
-              if [ -f "${file}" ]; then
-              echo "exists=1" >> "$GITHUB_OUTPUT"
-              echo "path=$file" >> "$GITHUB_OUTPUT"
-              break
-              fi
-          done
+        - shell: bash
+          run: |
+            for file in /dist/sky/*.zip
+            do
+                if [ -f "${file}" ]; then
+                echo "exists=1" >> "$GITHUB_OUTPUT"
+                echo "path=$file" >> "$GITHUB_OUTPUT"
+                break
+                fi
+            done
 
       - name: Archive Sky Kids Zip to Dropbox
         if: ${{ steps.skyKidsZip.outputs.exists == 1 }}
