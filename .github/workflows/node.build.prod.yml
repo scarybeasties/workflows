@@ -69,9 +69,11 @@ jobs:
       - run: npm run build:prod
 
       - name: Zip Artifacts
-        uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r dist-en.zip ${{ inputs.folder_to_deploy_from }}
+        run: |
+            cd ${{ inputs.folder_to_deploy_from }}
+            zip -r dist-en.zip *
+            cd -
+            mv ${{ inputs.folder_to_deploy_from }}/dist-en.zip dist-en.zip
 
       - name: Get dropbox token
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
@@ -90,20 +92,17 @@ jobs:
         id: skyKidsZip
         shell: bash
         run: |
-          for file in ./dist/sky/*.zip;
-          do
-              echo "$file"
-              if [ -f "${file}" ]; then
-              echo "exists=1" >> "$GITHUB_OUTPUT"
-              break
-              fi
-          done
+            if [ -d "./dist/skykids" ]  then
+            echo "exists=1" >> "$GITHUB_OUTPUT"
+            fi
 
       - name: Zip Sky Artifacts
         if: ${{ steps.skyKidsZip.outputs.exists == 1 }}
-        uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r dist-sky.zip dist/sky
+        run: |
+          cd dist/skykids
+          zip -r dist-skykids.zip *
+          cd -
+          mv dist/skykids/dist-skykids.zip dist-skykids.zip
 
       - name: Archive Sky Kids Zip to Dropbox
         if: ${{ steps.skyKidsZip.outputs.exists == 1 }}
@@ -114,7 +113,7 @@ jobs:
               --header "Content-Type: application/octet-stream" \
               --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
               --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
-              --data-binary @"dist-sky.zip"
+              --data-binary @"dist-skykids.zip"
 
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
