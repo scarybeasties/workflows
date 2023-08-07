@@ -95,6 +95,8 @@ jobs:
           if [ -d "./dist/skykids" ]
           then
           echo "exists=1" >> "$GITHUB_OUTPUT"
+          else
+          echo "exists=0" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Zip Sky Artifacts
