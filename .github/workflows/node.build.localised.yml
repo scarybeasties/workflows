@@ -169,10 +169,10 @@ jobs:
           for i in "${arr[@]}"
           do
               # do stuff with $i
-              attachments+='{"name":"'"$i"'URL:","value":"http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ env.NOW }}/'"$i"'"},'
+              attachments+='{"name":"'"$i"' URL:","value":"http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ env.NOW }}/'"$i"'"},'
           done
 
-          attachments+='{"name":"Repository:","value":"${{ env.REPOSITORY_NAME }}"},{"name":"Branch:","value":"${{ env.REF_NAME }}"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"${{ env.SERVER_URL }}/${{ env.REPOSITORY_NAME }}/actions/runs/${{ env.RUN_ID }}]}]}'
+          attachments+='{"name":"Repository:","value":"${{ env.REPOSITORY_NAME }}"},{"name":"Branch:","value":"${{ env.REF_NAME }}"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"${{ env.SERVER_URL }}/${{ env.REPOSITORY_NAME }}/actions/runs/${{ env.RUN_ID }}" }] }] }'
           echo $attachments
 
           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d "$attachments"
