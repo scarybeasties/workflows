@@ -147,7 +147,7 @@ jobs:
       - name: Notify Teams
         if: ${{ success() }}
         run: |
-          attachments='{"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Localised build deployed!","themeColor":"00ff00","title":$GITHUB_REPOSITORY" localised build deployed 🚀","sections":[{"facts":['
+          attachments='{"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Localised build deployed!","themeColor":"00ff00","title":"'$GITHUB_REPOSITORY' localised build deployed 🚀","sections":[{"facts":['
 
           buildLanguages=$(echo ${{steps.language.outputs.prop}} | sed -e 's/\[//g' -e 's/\]//g' -e 's/\"//g'  -e 's/,/ /g; q')
 
@@ -160,6 +160,6 @@ jobs:
               attachments+='{"name":"'"$i"'URL:","value":"http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ env.NOW }}/'"$i"'"},'
           done
 
-          attachments+='{"name":"Repository:","value":$GITHUB_REPOSITORY},{"name":"Branch:","value":$GITHUB_REF_NAME}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":$GITHUB_SERVER_URL"/"$GITHUB_REPOSITORY"/actions/runs/"$GITHUB_RUN_ID}]}]}'
+          attachments+='{"name":"Repository:","value":'$GITHUB_REPOSITORY'},{"name":"Branch:","value":'$GITHUB_REF_NAME'}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"'$GITHUB_SERVER_URL'/'$GITHUB_REPOSITORY'/actions/runs/'$GITHUB_RUN_ID'}]}]}'
 
           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d "$attachments"
