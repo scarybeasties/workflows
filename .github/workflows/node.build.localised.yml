@@ -146,7 +146,7 @@ jobs:
       - name: Set server url
         run: echo "SERVER_URL=${GITHUB_SERVER_URL}" >> $GITHUB_ENV
 
-        - name: Set run id
+      - name: Set run id
         run: echo "RUN_ID=${GITHUB_RUN_ID}" >> $GITHUB_ENV
 
       - name: Get Language
