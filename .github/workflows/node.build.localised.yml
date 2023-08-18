@@ -137,6 +137,18 @@ jobs:
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%Y-%m-%d')" >> $GITHUB_ENV 
 
+      - name: Set repo name
+        run: echo "REPOSITORY_NAME=${GITHUB_REPOSITORY}" >> $GITHUB_ENV
+
+      - name: Set ref name
+        run: echo "REF_NAME=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+
+      - name: Set server url
+        run: echo "SERVER_URL=${GITHUB_SERVER_URL}" >> $GITHUB_ENV
+
+        - name: Set run id
+        run: echo "RUN_ID=${GITHUB_RUN_ID}" >> $GITHUB_ENV
+
       - name: Get Language
         id: language
         uses: notiz-dev/github-action-json-property@release
@@ -147,7 +159,7 @@ jobs:
       - name: Notify Teams
         if: ${{ success() }}
         run: |
-          attachments='{"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Localised build deployed!","themeColor":"00ff00","title":"${{GITHUB_REPOSITORY}} localised build deployed 🚀","sections":[{"facts":['
+          attachments='{"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Localised build deployed!","themeColor":"00ff00","title":"${{ env.REPOSITORY_NAME }} localised build deployed 🚀","sections":[{"facts":['
 
           buildLanguages=$(echo ${{steps.language.outputs.prop}} | sed -e 's/\[//g' -e 's/\]//g' -e 's/\"//g'  -e 's/,/ /g; q')
 
@@ -160,7 +172,7 @@ jobs:
               attachments+='{"name":"'"$i"'URL:","value":"http://www.scarybserver.com/clients/${{ inputs.deployment_directory }}/${{ env.NOW }}/'"$i"'"},'
           done
 
-          attachments+='{"name":"Repository:","value":"${{GITHUB_REPOSITORY}}"},{"name":"Branch:","value":"${{GITHUB_REF_NAME}}"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"${{GITHUB_SERVER_URL}}/${{GITHUB_REPOSITORY}}/actions/runs/${{GITHUB_RUN_ID}}]}]}'
+          attachments+='{"name":"Repository:","value":"${{ env.REPOSITORY_NAME }}"},{"name":"Branch:","value":"${{ env.REF_NAME }}"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"${{ env.SERVER_URL }}/${{ env.REPOSITORY_NAME }}/actions/runs/${{ env.RUN_ID }}]}]}'
           echo $attachments
 
           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d "$attachments"
