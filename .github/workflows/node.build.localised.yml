@@ -103,9 +103,12 @@ jobs:
           server-dir: ${{ inputs.deployment_directory }}/${{ env.NOW }}/${{ matrix.language }}/
 
       - name: Zip Artifacts
-        uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r dist-${{ matrix.language }}-${{ env.NOW }}.zip dist-${{ matrix.language }}
+        run: |
+            cd ${{ inputs.folder_to_deploy_from }}${{ matrix.language }}
+            zip -r dist-${{ matrix.language }}.zip *
+            cd -
+            mv ${{ inputs.folder_to_deploy_from }}${{ matrix.language }}/dist-${{ matrix.language }}.zip dist-${{ matrix.language }}-${{ env.NOW }}.zip
+
 
       - name: Get dropbox token
         run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
