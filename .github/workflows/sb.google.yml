@@ -200,12 +200,12 @@ jobs:
              cat << EOF > message.json
              {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Google Play AppCenter Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Google Play AppCenter Build Deployed! 🤖","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
              EOF
-           else if [[ ${{ inputs.destination }} == 'Dropbox' ]]
+           elif [[ ${{ inputs.destination }} == 'Dropbox' ]]
            then
              cat << EOF > message.json
              {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Google Play Build Uploaded To Dropbox!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Google Play Build Uploaded To Dropbox!","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
              EOF
-           else if [[ ${{ inputs.destination }} == 'Github' ]]
+           elif [[ ${{ inputs.destination }} == 'Github' ]]
            then
              cat << EOF > message.json
              {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Google Play Build Uploaded as Github Artifact!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Google Play Build Uploaded as Github Artifact!","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
