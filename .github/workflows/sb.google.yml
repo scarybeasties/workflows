@@ -106,7 +106,7 @@ jobs:
 
       - name: Copy LibMP3lame
         run: |
-          ls /opt/Unity/Editor/Data/Tools/FSBTool/
+          ls /opt/Unity/Editor/Data/Tools/
 
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
