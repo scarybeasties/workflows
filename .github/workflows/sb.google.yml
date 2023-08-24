@@ -91,11 +91,6 @@ jobs:
         id: version_code
         uses: lucasfe/version_code_generator@v1.0.0
 
-      - name: Copy LibMP3lame
-        run: |
-          cp ./libvorbis.so /opt/Unity/Editor/Data/Tools/FSBTool/ | true
-          ls /opt/Unity/Editor/Data/Tools/FSBTool/
-
       - uses: game-ci/unity-builder@v2
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -108,6 +103,10 @@ jobs:
           versioning: Custom
           version: none
           customParameters: -nographics -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -SPLIT_APK ${{ inputs.build_obb_bundle}} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
+
+      - name: Copy LibMP3lame
+        run: |
+          ls /opt/Unity/Editor/Data/Tools/FSBTool/
 
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
