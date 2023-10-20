@@ -37,19 +37,12 @@ jobs:
     name: Build Android (Amazon) Project
     runs-on: ubuntu-latest
     steps:
-      - name: Setup FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v2
-
       - name: Checkout reusable workflow dir
         uses: actions/checkout@v3
         with:
           repository: scarybeasties/workflows
           path: workflows
-
-      # Free up disk space
-      - name: Free disk space
-        run: workflows/.github/workflows/free_disk_space.sh
-          
+    
       - name: Setup NDK Version
         id: setup-ndk
         if: ${{ inputs.android_ndk_version != '' }}
@@ -88,6 +81,10 @@ jobs:
       - name: Get version code
         id: version_code
         uses: lucasfe/version_code_generator@v1.0.0
+
+      # Free up disk space
+      - name: Free disk space
+        run: workflows/.github/workflows/free_disk_space.sh
 
       - uses: game-ci/unity-builder@v2
         env:
