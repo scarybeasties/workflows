@@ -35,7 +35,7 @@ on:
 jobs:
   buildForAmazonPlatformDevelopment:
     name: Build Android (Amazon) Project
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout reusable workflow dir
         uses: actions/checkout@v3
