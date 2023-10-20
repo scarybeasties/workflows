@@ -30,6 +30,12 @@ rm -rf /usr/share/dotnet/
 rm -rf "/usr/local/share/boost"
 rm -rf "$AGENT_TOOLSDIRECTORY"
 
+sudo swapoff -a
+sudo rm -f /swapfile
+sudo apt clean
+docker rmi $(docker images -q)
+df -h
+
 # After
 echo "Disk space after:"
 df -h
