@@ -85,10 +85,15 @@ jobs:
       # Free up disk space
       - name: Free disk space
         run: |
+          df -h
           sudo swapoff -a
           sudo rm -f /swapfile
-          sudo apt clean
-          docker rmi $(docker image ls -aq)
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          docker system prune -a --volumes --force
           df -h
           # Before
           echo "Disk space before:"
