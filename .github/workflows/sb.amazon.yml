@@ -92,8 +92,6 @@ jobs:
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo apt clean
-          docker rmi $(docker image l -aq)
 
           docker system prune -a --volumes --force
           df -h
