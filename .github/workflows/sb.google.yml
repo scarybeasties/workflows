@@ -35,7 +35,7 @@ on:
 jobs:
   buildForGooglePlayPlatformDevelopment:
     name: Build Android (Google Play) Project
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
 
       - name: Checkout reusable workflow dir
