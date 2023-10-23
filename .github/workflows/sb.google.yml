@@ -49,7 +49,6 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-          docker system prune -a --volumes --force
           df -h
           # Before
           echo "Disk space before:"
