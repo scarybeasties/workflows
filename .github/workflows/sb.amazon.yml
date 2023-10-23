@@ -37,6 +37,48 @@ jobs:
     name: Build Android (Amazon) Project
     runs-on: ubuntu-latest
     steps:
+
+      # Free up disk space
+      - name: Free disk space
+        run: |
+          df -h
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          docker system prune -a --volumes --force
+          df -h
+          # Before
+          echo "Disk space before:"
+          df -h
+
+          #echo "Listing 100 largest packages"
+          #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+          #echo "Removing large packages"
+          #sudo apt-get remove -y '^ghc-8.*'
+          #sudo apt-get remove -y '^dotnet-.*'
+          #sudo apt-get remove -y '^llvm-.*'
+          #sudo apt-get remove -y 'php.*'
+          #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
+          #sudo apt-get autoremove -y
+          #sudo apt-get clean
+          #df -h
+
+          echo "Removing large directories"
+          # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
+          rm -rf /usr/share/dotnet/
+
+          # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
+          rm -rf "/usr/local/share/boost"
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          # After
+          echo "Disk space after:"
+          df -h
+      
       - name: Checkout reusable workflow dir
         uses: actions/checkout@v3
         with:
@@ -81,60 +123,6 @@ jobs:
       - name: Get version code
         id: version_code
         uses: lucasfe/version_code_generator@v1.0.0
-
-      # Free up disk space
-      - name: Free disk space
-        run: |
-          df -h
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-
-          docker system prune -a --volumes --force
-          df -h
-          # Before
-          echo "Disk space before:"
-          df -h
-
-          #echo "Listing 100 largest packages"
-          #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
-          #echo "Removing large packages"
-          #sudo apt-get remove -y '^ghc-8.*'
-          #sudo apt-get remove -y '^dotnet-.*'
-          #sudo apt-get remove -y '^llvm-.*'
-          #sudo apt-get remove -y 'php.*'
-          #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
-          #sudo apt-get autoremove -y
-          #sudo apt-get clean
-          #df -h
-
-          echo "Removing large directories"
-          # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
-          rm -rf /usr/share/dotnet/
-
-          # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
-          rm -rf "/usr/local/share/boost"
-          rm -rf "$AGENT_TOOLSDIRECTORY"
-
-          # After
-          echo "Disk space after:"
-          df -h
-
-      - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
-        uses: jlumbroso/free-disk-space@main
-        with:
-          # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
-          tool-cache: false
-
-          # All of these default to true, but feel free to set to "false" if necessary for your workflow
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
 
       - uses: game-ci/unity-builder@v2
         env:
