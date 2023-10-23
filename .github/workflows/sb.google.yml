@@ -94,6 +94,7 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
+          docker system prune -a --volumes --force
           df -h
           # Before
           echo "Disk space before:"
@@ -133,7 +134,7 @@ jobs:
           android: true
           dotnet: true
           haskell: true
-          large-packages: false
+          large-packages: true
           swap-storage: true
 
       - uses: game-ci/unity-builder@v2
