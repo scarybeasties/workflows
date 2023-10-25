@@ -156,21 +156,9 @@ jobs:
         if: ${{ inputs.build_aab_bundle == 'true' }}
         run: sudo cp Amazon/**/*.aab Amazon/Android.aab || true
 
-      - name: Create the app on AppCenter if it doesnt exist
+      name: Upload APK to AppCenter
         if: ${{ inputs.destination == 'AppCenter' }}
-        uses: avocaddo/AppCenter-Github-Action@v1.0.2
-        continue-on-error: true
-        with:
-          command: appcenter apps create -d ${{ github.event.repository.name }}_Android -n ${{ github.event.repository.name }}_Android -o Android -p Unity
-          token: ${{secrets.APPCENTER_API_TOKEN}}
-
-      - name: Upload APK to AppCenter
-        if: ${{ inputs.destination == 'AppCenter' }}
-        uses: avocaddo/AppCenter-Github-Action@v1.0.2
-        continue-on-error: true
-        with:
-          command: appcenter distribute release -f ${{ inputs.build_aab_bundle == 'true' && 'Amazon/Android.aab' || 'Amazon/Android.apk' }} -a phil-bn62/${{ github.event.repository.name }}_Android --group Collaborators --silent
-          token: ${{secrets.APPCENTER_API_TOKEN}}
+        run: sh ./uploadToAppCenter.sh phil-bn62 ${{ github.event.repository.name }}_Android ${{ inputs.build_aab_bundle == 'true' && 'Google/Android.aab' || 'Google/Android.apk' }} ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
         if: ${{ inputs.destination == 'Dropbox' }}
