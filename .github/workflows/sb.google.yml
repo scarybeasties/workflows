@@ -83,6 +83,9 @@ jobs:
         id: version_code
         uses: lucasfe/version_code_generator@v1.0.0
 
+      - name: Check what folders are left on disk BEFORE cleanup
+        run: ls
+
       # Free up disk space
       - name: Free disk space
         run: |
