@@ -10,11 +10,11 @@ APPCENTER_OUTPUT_DIRECTORY=$(mktemp -d)
 # $APPCENTER_BRANCH
 
 # Custom Environment Variables set in Build configuration
-API_TOKEN=$4
-OWNER_NAME=$1
-APP_NAME=$2
+API_TOKEN="$4"
+OWNER_NAME="$1"
+APP_NAME="$2"
 TEAM_APP="$OWNER_NAME/$APP_NAME"
-APP_PACKAGE=$3
+APP_PACKAGE="$3"
 CONTENT_TYPE="application/octet-stream"
 #   Android: "application/vnd.android.package-archive"
 #   iOS: "application/octet-stream"
