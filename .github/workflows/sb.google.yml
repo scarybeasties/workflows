@@ -137,6 +137,9 @@ jobs:
           large-packages: true
           swap-storage: true
 
+      - name: Check what folders are left on disk
+        run: ls
+
       - uses: game-ci/unity-builder@v2
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
