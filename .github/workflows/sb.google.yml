@@ -87,6 +87,8 @@ jobs:
         run: |
           cd ..
           ls
+          cd ..
+          ls
 
       # Free up disk space
       - name: Free disk space
