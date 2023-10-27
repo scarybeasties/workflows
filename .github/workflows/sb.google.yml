@@ -83,17 +83,6 @@ jobs:
         id: version_code
         uses: lucasfe/version_code_generator@v1.0.0
 
-      - name: Check what folders are left on disk BEFORE cleanup
-        run: |
-          pwd
-          ls
-          cd ..
-          pwd
-          ls
-          cd ..
-          pwd
-          ls
-
       # Free up disk space
       - name: Free disk space
         run: |
@@ -148,11 +137,6 @@ jobs:
           large-packages: true
           swap-storage: true
 
-      - name: Check what folders are left on disk
-        run: |
-          cd ..
-          ls
-
       - uses: game-ci/unity-builder@v2
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -175,7 +159,7 @@ jobs:
 
       - name: Upload APK to AppCenter
         if: ${{ inputs.destination == 'AppCenter' }}
-        run: sh ./workflows/.github/workflows/uploadToAppCenter.sh phil-bn62 ${{ github.event.repository.name }}_Android ${{ inputs.build_aab_bundle == 'true' && '../../../Google/Android.aab' || '../../../Google/Android.apk' }} ${{secrets.APPCENTER_API_TOKEN}}
+        run: sh ./workflows/.github/workflows/uploadToAppCenter.sh phil-bn62 ${{ github.event.repository.name }}_Android ${{ inputs.build_aab_bundle == 'true' && './Google/Android.aab' || './Google/Android.apk' }} ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
         if: ${{ inputs.destination == 'Dropbox' }}
