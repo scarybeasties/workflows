@@ -29,13 +29,18 @@ ACCEPT_JSON="Accept: application/json"
 # Body - Step 1/7
 echo "Creating release (1/7)"
 request_url="$API_URL/uploads/releases"
+echo "Creating release (1/7) - a"
 upload_json=$(curl -s -X POST -H "Content-Type: application/json" -H "$ACCEPT_JSON" -H "$AUTH" "$request_url")
 
+echo "Creating release (1/7) - b"
 releases_id=$(echo $upload_json | jq -r '.id')
+echo "Creating release (1/7) - c"
 package_asset_id=$(echo $upload_json | jq -r '.package_asset_id')
+echo "Creating release (1/7) - d"
 url_encoded_token=$(echo $upload_json | jq -r '.url_encoded_token')
-
+echo "Creating release (1/7) - e"
 file_name=$(basename $APP_PACKAGE)
+echo "Creating release (1/7) - f"
 file_size=$(eval wc -c $APP_PACKAGE | awk '{print $1}')
 
 # Step 2/7
