@@ -158,7 +158,7 @@ jobs:
 
       name: Upload APK to AppCenter
         if: ${{ inputs.destination == 'AppCenter' }}
-        run: sh ./workflows/.github/workflows/uploadToAppCenter.sh phil-bn62 ${{ github.event.repository.name }}_Android ${{ inputs.build_aab_bundle == 'true' && "./Google/Android.aab" || "./Google/Android.apk" }} ${{secrets.APPCENTER_API_TOKEN}}
+        run: sh ./workflows/.github/workflows/uploadToAppCenter.sh phil-bn62 ${{ github.event.repository.name }}_Android ${{ inputs.build_aab_bundle == 'true' && './Google/Android.aab' || './Google/Android.apk' }} ${{secrets.APPCENTER_API_TOKEN}}
 
       - name: Get dropbox token
         if: ${{ inputs.destination == 'Dropbox' }}
