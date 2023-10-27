@@ -33,6 +33,7 @@ echo "Creating release (1/7) - a"
 upload_json=$(curl -s -X POST -H "Content-Type: application/json" -H "$ACCEPT_JSON" -H "$AUTH" "$request_url")
 
 echo "Creating release (1/7) - b"
+echo $upload_json
 releases_id=$(echo $upload_json | jq -r '.id')
 echo "Creating release (1/7) - c"
 package_asset_id=$(echo $upload_json | jq -r '.package_asset_id')
