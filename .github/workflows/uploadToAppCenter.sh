@@ -92,7 +92,7 @@ release_id=null
 counter=0
 max_poll_attempts=15
 
-while [[ $release_id == null && ($counter -lt $max_poll_attempts) ]]
+while [ $release_id == null && $counter -lt $max_poll_attempts ]
 do
     poll_result=$(curl -s -H "Content-Type: application/json" -H "$ACCEPT_JSON" -H "$AUTH" $commit_url)
     release_id=$(echo $poll_result | jq -r '.release_distinct_id')
