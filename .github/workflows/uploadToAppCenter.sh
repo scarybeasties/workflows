@@ -30,7 +30,7 @@ ACCEPT_JSON="Accept: application/json"
 echo "Creating release (1/7)"
 request_url="$API_URL/uploads/releases"
 echo "Creating release (1/7) - a"
-upload_json=$(curl -s -X POST -H "Content-Type: application/json" -H "$ACCEPT_JSON" -H "$AUTH" "$request_url")
+upload_json=$(curl -s -X POST -H "Content-Type: application/json" -H "$ACCEPT_JSON" -H "$AUTH" -H "content-length: 0" "$request_url")
 
 echo "Creating release (1/7) - b"
 echo $upload_json
