@@ -101,7 +101,7 @@ do
     sleep 3
 done
 
-if [ $release_id == null ]
+if [ $release_id -eq null ]
 then
     echo "Failed to find release from appcenter"
     exit 1
