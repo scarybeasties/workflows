@@ -88,11 +88,11 @@ curl -H "Content-Type: application/json" -H "$ACCEPT_JSON" -H "$AUTH" \
 
 # Step 6/7
 echo "Polling for release id (6/7)"
-release_id=-1
+release_id=null
 counter=0
 max_poll_attempts=15
 
-while [ $release_id -eq -1 && $counter -lt $max_poll_attempts ]
+while [[ $release_id == null && $counter -lt $max_poll_attempts ]]
 do
     poll_result=$(curl -s -H "Content-Type: application/json" -H "$ACCEPT_JSON" -H "$AUTH" $commit_url)
     release_id=$(echo $poll_result | jq -r '.release_distinct_id')
@@ -101,7 +101,7 @@ do
     sleep 3
 done
 
-if [ $release_id -eq -1 ]
+if [[ $release_id == null ]]
 then
     echo "Failed to find release from appcenter"
     exit 1
