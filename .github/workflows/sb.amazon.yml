@@ -37,12 +37,7 @@ jobs:
     name: Build Android (Amazon) Project
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout reusable workflow dir
-        uses: actions/checkout@v3
-        with:
-          repository: scarybeasties/workflows
-          path: workflows
-    
+
       - name: Setup NDK Version
         id: setup-ndk
         if: ${{ inputs.android_ndk_version != '' }}
@@ -69,6 +64,12 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
           clean: false
+
+      - name: Checkout reusable workflow dir
+        uses: actions/checkout@v3
+        with:
+          repository: scarybeasties/workflows
+          path: workflows
 
       - name: Checkout Build Tools
         uses: actions/checkout@v2
@@ -225,21 +226,23 @@ jobs:
           path: ${{ inputs.build_aab_bundle == 'true' && 'Amazon/Android.aab' || inputs.build_obb_bundle == 'false' && 'Amazon/Android.apk' || 'Amazon' }}
 
       - name: Notify Teams
-        if: |
-          success()
-          && ${{ inputs.destination == 'AppCenter' }}
+        if: success()
         run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Amazon AppCenter Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Amazon AppCenter Build Deployed! 🤖","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
-      - name: Notify Teams
-        if: |
-          success() 
-          && ${{ inputs.destination == 'Dropbox' }}
-        run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Amazon Build Uploaded To Dropbox!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Amazon Build Uploaded To Dropbox!","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+          if [[ ${{ inputs.destination }} == 'AppCenter' ]]
+          then
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Amazon AppCenter Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Amazon AppCenter Build Deployed! 🤖","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          elif [[ ${{ inputs.destination }} == 'Dropbox' ]]
+          then
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Amazon Build Uploaded To Dropbox!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Amazon Build Uploaded To Dropbox!","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          elif [[ ${{ inputs.destination }} == 'Github' ]]
+          then
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Amazon Build Uploaded as Github Artifact!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Amazon Build Uploaded as Github Artifact!","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          fi
 
+          curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
