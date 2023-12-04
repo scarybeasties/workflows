@@ -150,6 +150,11 @@ jobs:
           version: none
           customParameters: -nographics -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -SPLIT_APK ${{ inputs.build_obb_bundle}} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
 
+      - name: Checking exported paths
+        run: |
+          cd Google
+          ls
+
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
         run: sudo cp Google/**/*.apk Google/Android.apk || true
