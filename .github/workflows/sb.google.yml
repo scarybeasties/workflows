@@ -35,7 +35,7 @@ on:
 jobs:
   buildForGooglePlayPlatformDevelopment:
     name: Build Android (Google Play) Project
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
 
       - name: Setup NDK Version
@@ -136,6 +136,15 @@ jobs:
           haskell: true
           large-packages: true
           swap-storage: true
+
+      - name: Increase swapfile
+        run: |
+          sudo swapoff -a
+          sudo fallocate -l 15G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
 
       - uses: game-ci/unity-builder@v4
         env:
