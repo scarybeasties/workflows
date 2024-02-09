@@ -197,7 +197,7 @@ jobs:
       - name: Setup Xcode Version
         uses: maxim-lobanov/setup-xcode@v1
         with:
-           xcode-version: '14.2.0'
+           xcode-version: latest-stable
 
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -268,6 +268,9 @@ jobs:
           BUNDLE_ID: ${{ inputs.bundle_id }}
           PROJECT_NAME: ${{ github.event.repository.name }}
 
+          BUILD_NUMBER: ${{ steps.version_code.outputs.code }}
+          BRANCH_NAME: $GITHUB_REF_NAME
+
         run: |
           pwd
           eval "$(ssh-agent -s)"
@@ -310,18 +313,20 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload build folder to github if not tagged
-        uses: actions/upload-artifact@v2  
+        uses: actions/upload-artifact@v4
         if: ${{ success() && !startsWith(github.ref, 'refs/tags/v') }}
         with:
           name: ios-project
           path: build/iOS/
+          retention-days: 5
 
       - name: Upload IPA to github if not tagged
-        uses: actions/upload-artifact@v2  
+        uses: actions/upload-artifact@v4
         if: ${{ success() && !startsWith(github.ref, 'refs/tags/v') }}
         with:
           name: ipa
           path: ${{ format('{0}/fastlane/', github.workspace) }}
+          retention-days: 5
 
       - name: Cleanup to avoid storage limit
         if: always()
@@ -340,124 +345,5 @@ jobs:
         run: |
            cat << EOF > message.json
            {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
-
-  releaseToEOneTestflight:
-    if: ${{ inputs.destination == 'EOne Testflight' }}
-    name: Release to EOne Testflight
-    runs-on: macos-latest
-    needs: buildForiOS
-    steps:
-
-      - name: Setup Xcode Version
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-           xcode-version: '14.2.0'
-
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Download buildNumber Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: buildNumber
-          path: buildNumber.txt
-
-      - name: Read buildNumber file
-        id: version_code
-        run: echo "code=$(cat buildNumber.txt)" >> $GITHUB_OUTPUT
-
-      - name: Notify Teams
-        run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS eOne Testflight Build started!","themeColor":"ffa200","title":"$GITHUB_REPOSITORY iOS eOne Testflight Build Started","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
-
-      - name: Checkout Certs
-        uses: actions/checkout@v2
-        with:
-          repository: ${{ secrets.MATCH_REPOSITORY }}
-          token: ${{ secrets.GH_PAT }}
-          ref: main
-          path: ./certs
-
-      - name: Checkout Fastlane
-        uses: actions/checkout@v2
-        with:
-          repository: scarybeasties/Fastlane
-          token: ${{ secrets.GH_PAT }}
-          ref: main
-          path: ./fastlane
-
-      - name: Download iOS Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: build-iOS
-          path: build/iOS
-
-      - uses: mikehardy/buildcache-action@v1
-
-      - name: Run SB Fastlane
-        env:
-          APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
-          APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
-          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
-
-          EONE_CERTIFICATE_PASSWORD: ${{ secrets.EONE_CERTIFICATE_PASSWORD }}
-
-          MATCH_DEPLOY_KEY: ${{ secrets.MATCH_DEPLOY_KEY }}
-          MATCH_REPOSITORY: ${{ secrets.MATCH_REPOSITORY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-
-          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-          APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
-
-          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
-          APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
-
-          BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
-          BUNDLE_ID: ${{ inputs.bundle_id }}
-          APPLE_ID: ${{ inputs.apple_id }}
-          PROJECT_NAME: ${{ github.event.repository.name }}
-
-        run: |
-          pwd
-          eval "$(ssh-agent -s)"
-          ssh-add - <<< "${MATCH_DEPLOY_KEY}"
-          find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
-          cd fastlane
-          bundle install
-          bundle exec fastlane ios BuildEOneTestFlight
-
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: ios-project
-          path: build/iOS/
-
-      - name: Cleanup to avoid storage limit
-        if: always()
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: build-iOS
-
-      - name: Cleanup to avoid storage limit
-        if: always()
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: buildNumber
-
-      - name: Notify Teams
-        if: ${{ success() }}
-        run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS eOne Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS eOne Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
