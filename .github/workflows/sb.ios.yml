@@ -269,7 +269,7 @@ jobs:
           PROJECT_NAME: ${{ github.event.repository.name }}
 
           BUILD_NUMBER: ${{ steps.version_code.outputs.code }}
-          BRANCH_NAME: ${{ $GITHUB_REF_NAME }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
 
         run: |
           pwd
