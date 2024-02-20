@@ -82,7 +82,7 @@ jobs:
   releaseToAppCenter:
     if: ${{ inputs.destination == 'AppCenter' }}
     name: Release to App Center
-    runs-on: macos-latest
+    runs-on: macos-13
     needs: buildForiOS
     steps:
       - name: Setup Xcode Version
@@ -190,7 +190,7 @@ jobs:
   releaseToSBTestflight:
     if: ${{ inputs.destination == 'SB Testflight' }}
     name: Release to SB Testflight
-    runs-on: macos-latest
+    runs-on: macos-13
     needs: buildForiOS
     steps:
 
