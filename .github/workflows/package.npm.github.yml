@@ -7,7 +7,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #   steps:
   #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
+  #     - uses: actions/setup-node@v4
   #       with:
   #         node-version: 16
   #         token: ${{ secrets.GH_PAT }}
@@ -33,7 +33,7 @@ jobs:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 16
           cache: 'npm'
