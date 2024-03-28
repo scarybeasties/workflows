@@ -35,7 +35,7 @@ jobs:
     steps:
       
       - name: Checkout Git repo for project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           submodules: recursive
@@ -147,13 +147,13 @@ jobs:
           key: Library-iOS
 
       - name: Upload iOS build folder as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build-iOS
           path: build/iOS
 
       - name: Upload build number as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: buildNumber
           path: buildNumber.txt
@@ -170,12 +170,12 @@ jobs:
           xcode-version: 15.2.0
 
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
       - name: Checkout Certs
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: ${{ secrets.MATCH_REPOSITORY }}
           token: ${{ secrets.GH_PAT }}
@@ -183,7 +183,7 @@ jobs:
           path: ./certs
 
       - name: Checkout Fastlane
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: scarybeasties/Fastlane
           token: ${{ secrets.GH_PAT }}
@@ -199,13 +199,13 @@ jobs:
 
 
       - name: Download iOS Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: build-iOS
           path: build/iOS
 
       - name: Download buildNumber Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: buildNumber
           path: buildNumber.txt
@@ -248,13 +248,13 @@ jobs:
 
       - name: Cleanup to avoid storage limit
         if: always()
-        uses: geekyeggo/delete-artifact@v1
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: build-iOS
 
       - name: Cleanup to avoid storage limit
         if: always()
-        uses: geekyeggo/delete-artifact@v1
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: buildNumber
 
@@ -279,12 +279,12 @@ jobs:
            xcode-version: 15.2.0
 
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
       - name: Download buildNumber Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: buildNumber
           path: buildNumber.txt
@@ -301,7 +301,7 @@ jobs:
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - name: Checkout Certs
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: ${{ secrets.MATCH_REPOSITORY }}
           token: ${{ secrets.GH_PAT }}
@@ -309,7 +309,7 @@ jobs:
           path: ./certs
 
       - name: Checkout Fastlane
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: scarybeasties/Fastlane
           token: ${{ secrets.GH_PAT }}
@@ -317,12 +317,12 @@ jobs:
           path: ./fastlane
 
       - name: Download iOS Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: build-iOS
           path: build/iOS
 
-      - uses: mikehardy/buildcache-action@v1
+      - uses: mikehardy/buildcache-action@v2
 
       - name: Run SB Fastlane
         env:
@@ -409,13 +409,13 @@ jobs:
 
       - name: Cleanup to avoid storage limit
         if: inputs.export_xcode_project == 'false'
-        uses: geekyeggo/delete-artifact@v1
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: build-iOS
 
       - name: Cleanup to avoid storage limit
         if: always()
-        uses: geekyeggo/delete-artifact@v1
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: buildNumber
 
