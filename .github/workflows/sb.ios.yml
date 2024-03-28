@@ -34,9 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       
-
-      - uses: actions/checkout@v2
-        name: Checkout Git repo for project
+      - name: Checkout Git repo for project
+        uses: actions/checkout@v2
         with:
           ref: ${{ github.ref }}
           submodules: recursive
@@ -49,7 +48,6 @@ jobs:
         uses: lucasfe/version_code_generator@v1.0.0
 
       - shell: bash
-        name: Cache version code
         run: |
           expr ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
@@ -116,7 +114,8 @@ jobs:
           sudo swapon /swapfile
           sudo swapon --show
 
-      - uses: actions/cache/restore@v4
+      - name: Restore library folders from cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             Library
@@ -124,8 +123,8 @@ jobs:
             Temp
           key: Library-iOS
 
-      - uses: game-ci/unity-builder@v4
-        name: Build Unity project
+      - name: Build Unity project
+        uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
@@ -138,8 +137,8 @@ jobs:
           version: none
           customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
 
-      - uses: actions/cache/save@v4
-        name: Cache Unity library folders
+      - name: Cache Unity library folders
+        uses: actions/cache/save@v4
         with:
           path: |
             Library
@@ -147,14 +146,14 @@ jobs:
             Temp
           key: Library-iOS
 
-      - uses: actions/upload-artifact@v2
-        name: Upload iOS build folder as artifact
+      - name: Upload iOS build folder as artifact
+        uses: actions/upload-artifact@v2
         with:
           name: build-iOS
           path: build/iOS
 
-      - uses: actions/upload-artifact@v2
-      name: Upload build number as artifact
+      - name: Upload build number as artifact
+        uses: actions/upload-artifact@v2
         with:
           name: buildNumber
           path: buildNumber.txt
