@@ -45,19 +45,8 @@ jobs:
         with:
           ndk-version: ${{ inputs.android_ndk_version }}
 
-      - uses: actions/cache@v2
-        with:
-          path: |
-            Assets
-            Library
-            ProjectSettings
-            Temp
-          key: Library-Android-${{ github.ref }}
-          restore-keys: |
-            Library-Android-
-            Library-
-
-      - uses: actions/checkout@v2
+      - name: Checkout Git repo for project
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           submodules: recursive
@@ -66,13 +55,13 @@ jobs:
           clean: false
 
       - name: Checkout reusable workflow dir
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: scarybeasties/workflows
           path: workflows
 
       - name: Checkout Build Tools
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: scarybeasties/AndroidBuildTools
           token: ${{ secrets.GH_PAT }}
@@ -137,7 +126,20 @@ jobs:
           large-packages: true
           swap-storage: true
 
-      - uses: game-ci/unity-builder@v4
+      - name: Restore library folders from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            Library
+            ProjectSettings
+            Temp
+          key: Library-Android-${{ github.ref }}
+          restore-keys: |
+            Library-Android-
+            Library-
+
+      - name: Build Unity project
+        uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
@@ -149,6 +151,15 @@ jobs:
           versioning: Custom
           version: none
           customParameters: -nographics -platform Amazon -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -split_APK ${{ inputs.build_obb_bundle}} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
+
+      - name: Cache Unity library folders
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            Library
+            ProjectSettings
+            Temp
+          key: Library-Android-${{ github.ref }}
 
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
