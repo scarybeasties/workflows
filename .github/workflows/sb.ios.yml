@@ -23,6 +23,10 @@ on:
         description: 'Offset Version Number Amount'
         type: string
         default: "0"
+      export_xcode_project:
+        type: boolean
+        description: 'Export xCode project after build'
+        default: false
 
 jobs:
   buildForiOS:
@@ -32,6 +36,7 @@ jobs:
       
 
       - uses: actions/checkout@v2
+        name: Checkout Git repo for project
         with:
           ref: ${{ github.ref }}
           submodules: recursive
@@ -44,6 +49,7 @@ jobs:
         uses: lucasfe/version_code_generator@v1.0.0
 
       - shell: bash
+        name: Cache version code
         run: |
           expr ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
@@ -119,6 +125,7 @@ jobs:
           key: Library-iOS
 
       - uses: game-ci/unity-builder@v4
+        name: Build Unity project
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
@@ -132,6 +139,7 @@ jobs:
           customParameters: -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile Default -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
 
       - uses: actions/cache/save@v4
+        name: Cache Unity library folders
         with:
           path: |
             Library
@@ -140,11 +148,13 @@ jobs:
           key: Library-iOS
 
       - uses: actions/upload-artifact@v2
+        name: Upload iOS build folder as artifact
         with:
           name: build-iOS
           path: build/iOS
 
       - uses: actions/upload-artifact@v2
+      name: Upload build number as artifact
         with:
           name: buildNumber
           path: buildNumber.txt
@@ -399,7 +409,7 @@ jobs:
           retention-days: 5
 
       - name: Cleanup to avoid storage limit
-        if: always()
+        if: ${{ !inputs.export_xcode_project }}
         uses: geekyeggo/delete-artifact@v1
         with:
           name: build-iOS
