@@ -408,7 +408,7 @@ jobs:
           retention-days: 5
 
       - name: Cleanup to avoid storage limit
-        if: ${{ inputs.export_xcode_project == "false" }}
+        if: inputs.export_xcode_project == 'false'
         uses: geekyeggo/delete-artifact@v1
         with:
           name: build-iOS
