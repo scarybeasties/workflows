@@ -8,25 +8,25 @@ on:
         type: string
         default: 'false'
       bundle_id:
-        type: string
         description: 'Bundle ID to use'
+        type: string
         default: ""
       apple_id:
-        type: string
         description: 'Apple id of the clients store page'
+        type: string
         default: ""
       destination:
-        type: string
         description: 'Destination of build'
+        type: string
         default: "AppCenter"
       offset_version_number:
         description: 'Offset Version Number Amount'
         type: string
         default: "0"
       export_xcode_project:
-        type: boolean
         description: 'Export xCode project after build'
-        default: false
+        type: string
+        default: 'false'
 
 jobs:
   buildForiOS:
@@ -408,7 +408,7 @@ jobs:
           retention-days: 5
 
       - name: Cleanup to avoid storage limit
-        if: ${{ !inputs.export_xcode_project }}
+        if: ${{ inputs.export_xcode_project == "false" }}
         uses: geekyeggo/delete-artifact@v1
         with:
           name: build-iOS
