@@ -73,7 +73,7 @@ jobs:
 
       - name: Get version code
         id: version_code
-        uses: lucasfe/version_code_generator@v1.0.0
+        uses: lucasfe/version_code_generator@3.9.4
 
       - name: Authenticate with private NPM package
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PAT }}" > ~/.npmrc
@@ -135,7 +135,7 @@ jobs:
 
       - name: Get version code
         id: version_code
-        uses: lucasfe/version_code_generator@v1.0.0
+        uses: lucasfe/version_code_generator@3.9.4
 
       - name: Set current date as env variable
         run: echo "NOW=$(date +'%Y-%m-%d')" >> $GITHUB_ENV 
