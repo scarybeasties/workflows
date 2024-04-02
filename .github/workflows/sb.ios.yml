@@ -49,7 +49,7 @@ jobs:
 
       - shell: bash
         run: |
-          expr ${{ steps.version_code.outputs.code }} > buildNumber.txt
+          echo ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
       # Free up disk space
       - name: Free disk space
