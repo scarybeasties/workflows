@@ -37,7 +37,7 @@ jobs:
       - name: Update Deployment Directory
         run: deployment_directory=${deployment_directory/${branch}/${{ steps.branch-name.outputs.current_branch }}}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           token: ${{ secrets.GH_PAT }}
