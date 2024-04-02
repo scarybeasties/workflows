@@ -45,7 +45,7 @@ jobs:
 
       - name: Get version code
         id: version_code
-        uses: lucasfe/version_code_generator@v1.0.0
+        uses: lucasfe/version_code_generator@3.9.4
 
       - shell: bash
         run: |
@@ -190,7 +190,7 @@ jobs:
           ref: main
           path: ./fastlane
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           # Path to Derived Data
           path: .local_derived_data

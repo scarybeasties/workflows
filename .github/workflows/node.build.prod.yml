@@ -26,18 +26,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Add SSH key to chekout a private repo
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.NODE_AUDIO_SSH_KEY }}
 
       - name: Get branch name
         id: branch-name
-        uses: tj-actions/branch-names@v7.0.7
+        uses: tj-actions/branch-names@v8.0.1
 
       - name: Update Deployment Directory
         run: deployment_directory=${deployment_directory/${branch}/${{ steps.branch-name.outputs.current_branch }}}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           token: ${{ secrets.GH_PAT }}
@@ -51,13 +51,13 @@ jobs:
 
       - name: Get version code
         id: version_code
-        uses: lucasfe/version_code_generator@v1.0.0
+        uses: lucasfe/version_code_generator@3.9.4
 
       - name: Authenticate with private NPM package
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PAT }}" > ~/.npmrc
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
@@ -119,7 +119,7 @@ jobs:
               --data-binary @"dist-skykids.zip"
 
       - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.scarybserver.com
           username: github@scarybserver.com
