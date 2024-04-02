@@ -190,7 +190,7 @@ jobs:
           ref: main
           path: ./fastlane
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           # Path to Derived Data
           path: .local_derived_data
