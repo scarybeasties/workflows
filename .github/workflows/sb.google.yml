@@ -45,8 +45,19 @@ jobs:
         with:
           ndk-version: ${{ inputs.android_ndk_version }}
 
-      - name: Checkout Git repo for project
-        uses: actions/checkout@v4
+      - name: Restore library folders from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            Library
+            ProjectSettings
+            Temp
+          key: Library-Android-${{ github.ref }}
+          restore-keys: |
+            Library-Android-
+            Library-
+
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           submodules: recursive
@@ -68,19 +79,9 @@ jobs:
           ref: main
           path: ./AndroidBuildTools
 
-      - shell: bash
+      - name: Get version code
         id: version_code
-        run: |
-          git config --global --add safe.directory '*'
-          source=${SOURCE:-.}
-
-          cd ${GITHUB_WORKSPACE}/${source}
-          count=$(git rev-list --count HEAD)
-          echo "Current count is ${count}"
-
-          current_branch=$(git rev-parse --abbrev-ref HEAD)
-          echo "Current branch is ${current_branch}"
-          echo "::set-output name=code::$count"
+        uses: lucasfe/version_code_generator@v1.0.0
 
       # Free up disk space
       - name: Free disk space
@@ -145,17 +146,7 @@ jobs:
           sudo swapon /swapfile
           sudo swapon --show
 
-      - name: Restore library folders from cache
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            Library
-            ProjectSettings
-            Temp
-          key: Library-Android-${{ github.ref }}
-
-      - name: Build Unity project
-        uses: game-ci/unity-builder@v4
+      - uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
@@ -167,15 +158,6 @@ jobs:
           versioning: Custom
           version: none
           customParameters: -nographics -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -SPLIT_APK ${{ inputs.build_obb_bundle}} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} -customBuildPath ${{ inputs.build_aab_bundle == 'true' && '/github/workspace/build/Android/Android.aab' || '/github/workspace/build/Android/Android.apk' }}
-
-      - name: Cache Unity library folders
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            Library
-            ProjectSettings
-            Temp
-          key: Library-Android-${{ github.ref }}
 
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
@@ -246,7 +228,7 @@ jobs:
 
 
       - name: Archive to Github
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         if: ${{ inputs.destination == 'Github' }}
         with:
           name: ${{ github.event.repository.name }}-${{ steps.version_code.outputs.code }}
