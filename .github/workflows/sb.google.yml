@@ -228,7 +228,7 @@ jobs:
 
 
       - name: Archive to Github
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ inputs.destination == 'Github' }}
         with:
           name: ${{ github.event.repository.name }}-${{ steps.version_code.outputs.code }}
