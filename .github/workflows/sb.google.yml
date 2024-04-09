@@ -160,7 +160,7 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
-          androidExportType: ${{ inputs.build_aab_bundle }}
+          androidExportType: ${{ inputs.build_aab_bundle == 'true' && 'androidAppBundle' || 'androidPackage' }}
           buildMethod: ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild
           versioning: Custom
           version: none
