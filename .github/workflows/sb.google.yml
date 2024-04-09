@@ -151,10 +151,7 @@ jobs:
             Library
             ProjectSettings
             Temp
-          key: Library-Android-${{ github.ref }}
-          restore-keys: |
-            Library-Android-
-            Library-
+          key: Library-Android
 
       - uses: game-ci/unity-builder@v4
         env:
@@ -163,7 +160,7 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: Android
-          androidExportType: ${{ inputs.build_aab_bundle == 'true' && 'androidAppBundle' || 'androidPackage' }}
+          androidExportType: ${{ inputs.build_aab_bundle }}
           buildMethod: ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild
           versioning: Custom
           version: none
@@ -176,7 +173,7 @@ jobs:
             Library
             ProjectSettings
             Temp
-          key: Library-Android-${{ github.ref }}    
+          key: Library-Android
 
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
