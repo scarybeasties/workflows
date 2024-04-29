@@ -27,11 +27,15 @@ on:
         description: 'Export xCode project after build'
         type: string
         default: 'false'
+      build_platform:
+        description: 'The platform that this build runs on'
+        type: string
+        default: 'ubuntu-latest'
 
 jobs:
   buildForiOS:
     name: Build iOS Project
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.build_platform }}
     steps:
       
       - name: Checkout Git repo for project
@@ -172,7 +176,7 @@ jobs:
   releaseToAppCenter:
     if: ${{ inputs.destination == 'AppCenter' }}
     name: Release to App Center
-    runs-on: macos-13
+    runs-on: macos-latest
     needs: buildForiOS
     steps:
       - name: Setup Xcode Version
@@ -280,7 +284,7 @@ jobs:
   releaseToSBTestflight:
     if: ${{ inputs.destination == 'SB Testflight' }}
     name: Release to SB Testflight
-    runs-on: macos-13
+    runs-on: macos-latest
     needs: buildForiOS
     steps:
 
