@@ -68,6 +68,7 @@ jobs:
 
       # Free up disk space
       - name: Free disk space
+        if: ${{ inputs.build_platform == 'ubuntu-latest' }}
         run: |
           df -h
           sudo swapoff -a
@@ -108,6 +109,7 @@ jobs:
           df -h
 
       - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
+        if: ${{ inputs.build_platform == 'ubuntu-latest' }}
         uses: jlumbroso/free-disk-space@main
         with:
           # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
@@ -121,6 +123,7 @@ jobs:
           swap-storage: true
 
       - name: Increase swapfile
+        if: ${{ inputs.build_platform == 'ubuntu-latest' }}
         run: |
           sudo swapoff -a
           sudo fallocate -l 15G /swapfile
