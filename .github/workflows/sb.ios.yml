@@ -137,8 +137,6 @@ jobs:
         with:
           path: |
             Library
-            ProjectSettings
-            Temp
           key: Library-iOS
 
       - name: Build Unity project
@@ -168,8 +166,6 @@ jobs:
         with:
           path: |
             Library
-            ProjectSettings
-            Temp
           key: Library-iOS
 
       - name: Upload iOS build folder as artifact

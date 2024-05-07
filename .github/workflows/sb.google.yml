@@ -149,8 +149,6 @@ jobs:
         with:
           path: |
             Library
-            ProjectSettings
-            Temp
           key: Library-Android
 
       - uses: game-ci/unity-builder@v4
@@ -166,13 +164,19 @@ jobs:
           version: none
           customParameters: -nographics -platform Google -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -SPLIT_APK ${{ inputs.build_obb_bundle}} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} -customBuildPath ${{ inputs.build_aab_bundle == 'true' && '/github/workspace/build/Android/Android.aab' || '/github/workspace/build/Android/Android.apk' }}
 
+      - name: Delete Previous Cache
+        continue-on-error: true
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete Library-Android --confirm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Cache Unity library folders
         uses: actions/cache/save@v4
         with:
           path: |
             Library
-            ProjectSettings
-            Temp
           key: Library-Android
 
       - name: Rename apk binary file 
