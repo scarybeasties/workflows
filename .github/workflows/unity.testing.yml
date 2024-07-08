@@ -1,0 +1,168 @@
+name: Unity - Testing
+
+on:
+  workflow_call:
+    inputs:
+      build_platform:
+        description: "The platform that this build runs on"
+        type: string
+        default: "ubuntu-latest"
+
+jobs:
+  testAllModes:
+    name: Test in ${{ matrix.testMode }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        projectPath:
+          - test-project
+        testMode:
+          - playmode
+          - editmode
+          - standalone
+    steps:
+      - name: Checkout Git repo for project
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+          clean: false
+
+      - shell: bash
+        id: version_code
+        run: |
+          git config --global --add safe.directory '*'
+          source=${SOURCE:-.}
+
+          cd ${GITHUB_WORKSPACE}/${source}
+          count=$(git rev-list --count HEAD)
+          echo "Current count is ${count}"
+
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch is ${current_branch}"
+          echo "::set-output name=code::$count"
+
+      - shell: bash
+        run: |
+          echo ${{ steps.version_code.outputs.code }}
+          echo ${{ steps.version_code.outputs.code }} > buildNumber.txt
+
+      # Free up disk space
+      - name: Free disk space
+        if: ${{ inputs.build_platform == 'ubuntu-latest' }}
+        run: |
+          df -h
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          docker system prune -a --volumes --force
+          df -h
+          # Before
+          echo "Disk space before:"
+          df -h
+
+          #echo "Listing 100 largest packages"
+          #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+          #echo "Removing large packages"
+          #sudo apt-get remove -y '^ghc-8.*'
+          #sudo apt-get remove -y '^dotnet-.*'
+          #sudo apt-get remove -y '^llvm-.*'
+          #sudo apt-get remove -y 'php.*'
+          #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
+          #sudo apt-get autoremove -y
+          #sudo apt-get clean
+          #df -h
+
+          echo "Removing large directories"
+          # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
+          rm -rf /usr/share/dotnet/
+
+          # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
+          rm -rf "/usr/local/share/boost"
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          # After
+          echo "Disk space after:"
+          df -h
+
+      - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
+        if: ${{ inputs.build_platform == 'ubuntu-latest' }}
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
+          tool-cache: false
+
+          # All of these default to true, but feel free to set to "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
+      - name: Increase swapfile
+        if: ${{ inputs.build_platform == 'ubuntu-latest' }}
+        run: |
+          sudo swapoff -a
+          sudo fallocate -l 15G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
+
+      - name: Restore library folders from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            Library
+          key: Library-iOS
+
+      - name: Build Unity project
+        uses: game-ci/unity-test-runner@v4
+        id: tests
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: ${{ matrix.projectPath }}
+          testMode: ${{ matrix.testMode }}
+          artifactsPath: ${{ matrix.testMode }}-artifacts
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: ${{ matrix.testMode }} Test Results
+          coverageOptions: "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+my.assembly.*"
+
+      - name: Delete Previous Cache
+        continue-on-error: true
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete Library-iOS --confirm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Unity library folders
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            Library
+          key: Library-iOS
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Test results for ${{ matrix.testMode }}
+          path: ${{ steps.tests.outputs.artifactsPath }}
+
+      - name: Upload Code Coverage Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Coverage results for ${{ matrix.testMode }}
+          path: ${{ steps.tests.outputs.coveragePath }}
