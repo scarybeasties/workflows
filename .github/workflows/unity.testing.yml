@@ -121,7 +121,7 @@ jobs:
         with:
           path: |
             Library
-          key: Library-iOS
+          key: Library-Test-Runner
 
       - name: Build Unity project
         uses: game-ci/unity-test-runner@v4
@@ -142,7 +142,7 @@ jobs:
         continue-on-error: true
         run: |
           gh extension install actions/gh-actions-cache
-          gh actions-cache delete Library-iOS --confirm
+          gh actions-cache delete Library-Test-Runner --confirm
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -151,7 +151,7 @@ jobs:
         with:
           path: |
             Library
-          key: Library-iOS
+          key: Library-Test-Runner
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
