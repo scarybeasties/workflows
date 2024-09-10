@@ -64,6 +64,10 @@ jobs:
         run : |
           rm -rf ./iOS/Tests
 
+      - name: Delete xcode project
+        run : |
+          rm -rf ./iOS/Build
+
       - name: Run iOS editor tests
         continue-on-error: true
         run: |
@@ -145,7 +149,7 @@ jobs:
           ref: main
           path: ./certs
 
-      - name: Fix File Permissions and Run fastlane
+      - name: Build to AppCenter
         if: ${{ always() && inputs.destination == 'AppCenter' && steps.iPhone_test_results.outputs.conclusion == 'success' || steps.iPhone_test_results.outputs.passed == 0}} 
         env:
           APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
@@ -179,7 +183,7 @@ jobs:
           bundle install
           bundle exec fastlane ios BuildAppCenter
 
-      - name: Run SB Fastlane
+      - name: Build to testflight
         if: ${{ always() && inputs.destination == 'SB Testflight' && steps.iPhone_test_results.outputs.conclusion == 'success' || steps.iPhone_test_results.outputs.passed == 0}} 
         env:
           APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
