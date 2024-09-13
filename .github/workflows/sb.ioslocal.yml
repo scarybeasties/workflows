@@ -203,7 +203,7 @@ jobs:
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
           APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
 
-          BUILD_PATH: ${{ format('{0}/build/iOS', github.workspace) }}
+          BUILD_PATH: ${{ format('{0}/iOS/build', github.workspace) }}
           BUNDLE_ID: ${{ inputs.bundle_id }}
           PROJECT_NAME: ${{ github.event.repository.name }}
 
