@@ -60,6 +60,10 @@ jobs:
         run : |
           rm -rf ~/Library/Developer/Xcode/DerivedData
 
+      - name: Delete XCode Archives
+        run : |
+          rm -rf ~/Library/Developer/Xcode/Archives
+
       - name: Delete prior test results
         run : |
           rm -rf ./iOS/Tests
