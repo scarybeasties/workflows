@@ -35,7 +35,7 @@ on:
         description: 'The path to Unity'
         type: string
         default: '/Applications/Unity/Hub/Editor/2022.3.35f1/Unity.app/Contents/MacOS/Unity'
-      scheme_name: 
+      scheme_name:
         description: 'The scheme name to build in xCode'
         type: string
         default: 'Release'
@@ -176,7 +176,7 @@ jobs:
 
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
           APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
-          SCHEME_NAME: ${{ ginputs.scheme_name }}
+          SCHEME_NAME: ${{ inputs.scheme_name }}
 
           BUILD_PATH: ${{ format('{0}/Mac/build', github.workspace) }}
           BUNDLE_ID: ${{ inputs.bundle_id }}
@@ -215,7 +215,7 @@ jobs:
           BUILD_PATH: ${{ format('{0}/Mac/build', github.workspace) }}
           BUNDLE_ID: ${{ inputs.bundle_id }}
           PROJECT_NAME: ${{ github.event.repository.name }}
-          SCHEME_NAME: ${{ ginputs.scheme_name }}
+          SCHEME_NAME: ${{ inputs.scheme_name }}
 
           BUILD_NUMBER: ${{ steps.version_code.outputs.code }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
