@@ -221,7 +221,7 @@ jobs:
           find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
           cd fastlane
           bundle install
-          bundle exec fastlane iOS BuildSBTestFlight
+          bundle exec fastlane tvOS BuildSBTestFlight
 
       - name: Notify Teams
         if: ${{ success() && inputs.destination == 'AppCenter' }}
