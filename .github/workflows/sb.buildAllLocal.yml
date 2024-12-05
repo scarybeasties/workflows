@@ -1,0 +1,205 @@
+name: SB - Build All Apple - Local
+
+on:
+  workflow_call: 
+    inputs:
+      development_build:
+        description: 'Development Build'
+        type: string
+        default: 'false'
+      bundle_id:
+        description: 'Bundle ID to use'
+        type: string
+        default: ""
+      apple_id:
+        description: 'Apple id of the clients store page'
+        type: string
+        default: ""
+      destination:
+        description: 'Destination of build'
+        type: string
+        default: "AppCenter"
+      offset_version_number:
+        description: 'Offset Version Number Amount'
+        type: string
+        default: "0"
+      export_xcode_project:
+        description: 'Export xCode project after build'
+        type: string
+        default: 'false'
+      build_platform:
+        description: 'The platform that this build runs on'
+        type: string
+        default: 'self-hosted'
+      unity_path:
+        description: 'The path to Unity'
+        type: string
+        default: '/Applications/Unity/Hub/Editor/2022.3.35f1/Unity.app/Contents/MacOS/Unity'
+
+jobs:
+  buildAllPlatforms:
+    name: Build ${{ matrix.testMode }} Project
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - iOS
+          - Mac
+          - tvOS
+    steps:
+
+      - name: Checkout Git repo for project
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          path: ${{ matrix.testMode }}
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+          clean: false
+      
+      - name: Setup Unity License
+        run: |
+          ${{ inputs.unity_path }} -quit -batchmode -serial ${{ secrets.UNITY_SERIAL }} -username '${{ secrets.UNITY_EMAIL }}' -password '${{ secrets.UNITY_PASSWORD }}'
+
+      - name: Delete XCode Derrived Data
+        run : |
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      - name: Delete XCode Archives
+        run : |
+          rm -rf ~/Library/Developer/Xcode/Archives
+
+      - name: Delete prior test results
+        run : |
+          rm -rf ./${{ matrix.testMode }}/Tests
+
+      - name: Delete xcode project
+        run : |
+          rm -rf ./${{ matrix.testMode }}/Build
+
+      - name: Run ${{ matrix.testMode }} editor tests
+        continue-on-error: true
+        run: |
+          ${{ inputs.unity_path }} -runTests -batchmode -nographics -projectPath ./${{ matrix.testMode }} -testResults ./Tests/${{ matrix.testMode }}/results.xml -buildTarget ${{ matrix.testMode }} -testPlatform EditMode
+
+      - name: ${{ matrix.testMode }} Test Report
+        uses: dorny/test-reporter@main
+        id: test_results
+        if: ${{ always() }} && ${{ hashFiles('./${{ matrix.testMode }}/Tests/${{ matrix.testMode }}/results.xml') != '' }}
+        with:
+          name: ${{ matrix.testMode }} Playmode Tests           # Name of the check run which will be created
+          path: ./Tests/${{ matrix.testMode }}/results.xml   # Path to test results
+          reporter: dotnet-nunit        # Format of test results
+          working-directory: ${{ matrix.testMode }}
+
+      - name: Upload Test Results
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.testMode }} Test Results
+          path: ./${{ matrix.testMode }}/Tests/${{ matrix.testMode }}/results.xml
+
+      - name: Notify Teams
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
+        run: |
+           cat << EOF > message.json
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.testMode }} tests passed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.testMode }} tests passed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           EOF
+           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+
+      - name: Notify Teams
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'failure' || steps.test_results.outputs.passed == 0}} 
+        run: |
+           cat << EOF > message.json
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.testMode }} tests failed!","themeColor":"ff0000","title":"$GITHUB_REPOSITORY ${{ matrix.testMode }} tests failed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           EOF
+           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+
+      - shell: bash
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
+        id: version_code
+        run: |
+          cd ${GITHUB_WORKSPACE}/${{ matrix.testMode }}
+          count=$(git rev-list --count HEAD)
+          echo "Current count is ${count}"
+
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch is ${current_branch}"
+          echo "::set-output name=code::$count"
+
+      - shell: bash
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
+        run: |
+          echo ${{ steps.version_code.outputs.code }}
+          echo ${{ steps.version_code.outputs.code }} > buildNumber.txt
+
+      - name: Build ${{ matrix.testMode }} project
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
+        continue-on-error: true
+        run: |
+          ${{ inputs.unity_path }} -batchmode -nographics -projectPath ./${{ matrix.testMode }} -buildTarget ${{ matrix.testMode }} -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform ${{ matrix.testMode }} -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/${{ matrix.testMode }}'
+
+      - name: Checkout Fastlane 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
+        uses: actions/checkout@v4
+        with:
+          repository: scarybeasties/Fastlane
+          token: ${{ secrets.GH_PAT }}
+          ref: main
+          path: ./fastlane
+
+      - name: Checkout Certs
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.MATCH_REPOSITORY }}
+          token: ${{ secrets.GH_PAT }}
+          ref: main
+          path: ./certs
+
+      - name: Build to testflight
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
+        env:
+          APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
+          APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+          SB_CERTIFICATE_PASSWORD: ${{ secrets.SB_CERTIFICATE_PASSWORD }}
+
+          MATCH_DEPLOY_KEY: ${{ secrets.MATCH_DEPLOY_KEY }}
+          MATCH_REPOSITORY: ${{ secrets.MATCH_REPOSITORY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
+
+          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+          APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
+
+          BUILD_PATH: ${{ format('{0}/${{ matrix.testMode }}/build', github.workspace) }}
+          BUNDLE_ID: ${{ inputs.bundle_id }}
+          PROJECT_NAME: ${{ github.event.repository.name }}
+
+          BUILD_NUMBER: ${{ steps.version_code.outputs.code }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+
+        run: |
+          pwd
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "${MATCH_DEPLOY_KEY}"
+          find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
+          cd fastlane
+          bundle install
+          bundle exec fastlane '"${{ matrix.testMode }}".toLowerCase()' BuildSBTestFlight
+
+      - name: Notify Teams
+        if: ${{ success() && inputs.destination == 'SB Testflight' }}
+        run: |
+           cat << EOF > message.json
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"${{ matrix.testMode }} SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.testMode }} SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           EOF
+           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
