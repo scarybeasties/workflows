@@ -160,6 +160,10 @@ jobs:
           ref: main
           path: ./certs
 
+      - name lowercaseMatrixName:
+        id: toLowerCase
+        run: INPUT=${{ matrix.platform }} echo "::set-output name=lowerCaseValue::${INPUT,,}"
+
       - name: Build to testflight
         if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
         env:
@@ -195,7 +199,7 @@ jobs:
           find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
           cd fastlane
           bundle install
-          bundle exec fastlane '"${{ matrix.platform }}".toLowerCase()' BuildSBTestFlight
+          bundle exec fastlane ${{ steps.toLowerCase.outputs.lowerCaseValue }} BuildSBTestFlight
 
       - name: Notify Teams
         if: ${{ success() && inputs.destination == 'SB Testflight' }}
