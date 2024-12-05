@@ -15,10 +15,6 @@ on:
         description: 'Apple id of the clients store page'
         type: string
         default: ""
-      destination:
-        description: 'Destination of build'
-        type: string
-        default: "AppCenter"
       offset_version_number:
         description: 'Offset Version Number Amount'
         type: string
@@ -35,6 +31,10 @@ on:
         description: 'The path to Unity'
         type: string
         default: '/Applications/Unity/Hub/Editor/2022.3.35f1/Unity.app/Contents/MacOS/Unity'
+      scheme_name:
+        description: 'The scheme name to build in xCode'
+        type: string
+        default: 'Release'
 
 jobs:
   buildAllPlatforms:
@@ -186,6 +186,7 @@ jobs:
 
           BUILD_NUMBER: ${{ steps.version_code.outputs.code }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+          SCHEME_NAME: ${{ inputs.scheme_name }}
 
         run: |
           pwd
