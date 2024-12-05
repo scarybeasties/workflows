@@ -160,7 +160,7 @@ jobs:
           ref: main
           path: ./certs
 
-      - name lowercaseMatrixName:
+      - name: LowerCase Matrix Name
         id: toLowerCase
         run: INPUT=${{ matrix.platform }} echo "::set-output name=lowerCaseValue::${INPUT,,}"
 
