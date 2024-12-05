@@ -162,7 +162,9 @@ jobs:
 
       - name: LowerCase Matrix Name
         id: toLowerCase
-        run: INPUT=${{ matrix.platform }} echo "::set-output name=lowerCaseValue::${INPUT,,}"
+        run: echo "::set-output name=lowerCaseValue::${UPPERCASE_VAR,,}"
+        env:
+          UPPERCASE_VAR: ${{ matrix.platform}}
 
       - name: Build to testflight
         if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
