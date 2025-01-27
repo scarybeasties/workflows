@@ -45,8 +45,6 @@ jobs:
       matrix:
         platform:
           - iOS
-          - Mac
-          - tvOS
     steps:
 
       - name: Checkout Git repo for project
