@@ -38,15 +38,20 @@ on:
 
 jobs:
   buildFortvOS:
-    name: Build tvOS Project
+    name: Build ${{ matrix.platform }} Project
     runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - tvOS
     steps:
 
       - name: Checkout Git repo for project
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-          path: 'tvOS'
+          path: ${{ matrix.platform }}
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
@@ -66,56 +71,56 @@ jobs:
 
       - name: Delete prior test results
         run : |
-          rm -rf ./tvOS/Tests
+          rm -rf ./${{ matrix.platform }}/Tests
 
       - name: Delete xcode project
         run : |
-          rm -rf ./tvOS/Build
+          rm -rf ./${{ matrix.platform }}/Build
 
-      - name: Run tvOS editor tests
+      - name: Run ${{ matrix.platform }} editor tests
         continue-on-error: true
         run: |
-          ${{ inputs.unity_path }} -runTests -batchmode -nographics -projectPath ./tvOS -testResults ./Tests/tvOS/results.xml -buildTarget tvOS -testPlatform EditMode
+          ${{ inputs.unity_path }} -runTests -batchmode -nographics -projectPath ./${{ matrix.platform }} -testResults ./Tests/${{ matrix.platform }}/results.xml -buildTarget ${{ matrix.platform }} -testPlatform EditMode
 
-      - name: tvOS Test Report
+      - name: ${{ matrix.platform }} Test Report
         uses: dorny/test-reporter@main
-        id: tvOS_test_results
-        if: ${{ always() }} && ${{ hashFiles('./tvOS/Tests/tvOS/results.xml') != '' }}
+        id: test_results
+        if: ${{ always() }} && ${{ hashFiles('./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml') != '' }}
         with:
-          name: tvOS Playmode Tests           # Name of the check run which will be created
-          path: ./Tests/tvOS/results.xml   # Path to test results
+          name: ${{ matrix.platform }} Playmode Tests           # Name of the check run which will be created
+          path: ./Tests/${{ matrix.platform }}/results.xml   # Path to test results
           reporter: dotnet-nunit        # Format of test results
-          working-directory: tvOS
+          working-directory: ${{ matrix.platform }}
 
       - name: Upload Test Results
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: tvOS Test Results
-          path: ./tvOS/Tests/tvOS/results.xml
+          name: ${{ matrix.platform }} Test Results
+          path: ./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml
 
       - name: Notify Teams
-        if: ${{ always() && steps.tvOS_test_results.outputs.conclusion == 'success' && steps.tvOS_test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         run: |
            cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY tvOS tests passed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY tvOS tests passed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.tvOS_test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.tvOS_test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.tvOS_test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.tvOS_test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - name: Notify Teams
-        if: ${{ always() && steps.tvOS_test_results.outputs.conclusion == 'failure' || steps.tvOS_test_results.outputs.passed == 0}} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'failure' || steps.test_results.outputs.passed == 0}} 
         run: |
            cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY tvOS tests failed!","themeColor":"ff0000","title":"$GITHUB_REPOSITORY tvOS tests failed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.tvOS_test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.tvOS_test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.tvOS_test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.tvOS_test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","themeColor":"ff0000","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - shell: bash
-        if: ${{ always() && steps.tvOS_test_results.outputs.conclusion == 'success' && steps.tvOS_test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         id: version_code
         run: |
-          cd ${GITHUB_WORKSPACE}/tvOS
+          cd ${GITHUB_WORKSPACE}/${{ matrix.platform }}
           count=$(git rev-list --count HEAD)
           echo "Current count is ${count}"
 
@@ -124,19 +129,19 @@ jobs:
           echo "::set-output name=code::$count"
 
       - shell: bash
-        if: ${{ always() && steps.tvOS_test_results.outputs.conclusion == 'success' && steps.tvOS_test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         run: |
           echo ${{ steps.version_code.outputs.code }}
           echo ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
-      - name: Build tvOS project
-        if: ${{ always() && steps.tvOS_test_results.outputs.conclusion == 'success' && steps.tvOS_test_results.outputs.passed > 0 }} 
+      - name: Build ${{ matrix.platform }} project
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         continue-on-error: true
         run: |
-          ${{ inputs.unity_path }} -batchmode -nographics -projectPath ./tvOS -buildTarget tvOS -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform tvOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/tvOS'
+          ${{ inputs.unity_path }} -batchmode -nographics -projectPath ./${{ matrix.platform }} -buildTarget ${{ matrix.platform }} -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform ${{ matrix.platform }} -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/${{ matrix.platform }}'
 
       - name: Checkout Fastlane 
-        if: ${{ always() && steps.tvOS_test_results.outputs.conclusion == 'success' || steps.tvOS_test_results.outputs.passed == 0}} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
         uses: actions/checkout@v4
         with:
           repository: scarybeasties/Fastlane
@@ -145,7 +150,7 @@ jobs:
           path: ./fastlane
 
       - name: Checkout Certs
-        if: ${{ always() && steps.tvOS_test_results.outputs.conclusion == 'success' || steps.tvOS_test_results.outputs.passed == 0}}
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.MATCH_REPOSITORY }}
@@ -153,42 +158,14 @@ jobs:
           ref: main
           path: ./certs
 
-      - name: Build to AppCenter
-        if: ${{ always() && inputs.destination == 'AppCenter' && steps.tvOS_test_results.outputs.conclusion == 'success' || steps.tvOS_test_results.outputs.passed == 0}} 
-        env:
-          APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
-          APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-
-          SB_CERTIFICATE_PASSWORD: ${{ secrets.SB_CERTIFICATE_PASSWORD }}
-
-          MATCH_DEPLOY_KEY: ${{ secrets.MATCH_DEPLOY_KEY }}
-          MATCH_REPOSITORY: ${{ secrets.MATCH_REPOSITORY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-
-          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-          APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
-
-          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
-          APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
-
-          BUILD_PATH: ${{ format('{0}/tvOS/build', github.workspace) }}
-          BUNDLE_ID: ${{ inputs.bundle_id }}
-          PROJECT_NAME: ${{ github.event.repository.name }}
-
-        run: |
-          pwd
-          eval "$(ssh-agent -s)"
-          ssh-add - <<< "${MATCH_DEPLOY_KEY}"
-          find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
-          cd fastlane
-          gem install bundler:2.4.6
-          bundle install
-          bundle exec fastlane tvOS BuildAppCenter
+      - name: LowerCase Matrix Name
+        id: toLowerCase
+        uses: vishalmamidi/lowercase-action@v1
+        with:
+          string: ${{ matrix.platform }}
 
       - name: Build to testflight
-        if: ${{ always() && inputs.destination == 'SB Testflight' && steps.tvOS_test_results.outputs.conclusion == 'success' || steps.tvOS_test_results.outputs.passed == 0}} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
         env:
           APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
           APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
@@ -207,12 +184,13 @@ jobs:
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
           APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
 
-          BUILD_PATH: ${{ format('{0}/tvOS/build', github.workspace) }}
+          BUILD_PATH: ${{ format('{0}/{1}/build', github.workspace, matrix.platform) }}
           BUNDLE_ID: ${{ inputs.bundle_id }}
           PROJECT_NAME: ${{ github.event.repository.name }}
 
           BUILD_NUMBER: ${{ steps.version_code.outputs.code }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+          SCHEME_NAME: ${{ inputs.scheme_name }}
 
         run: |
           pwd
@@ -221,20 +199,13 @@ jobs:
           find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
           cd fastlane
           bundle install
-          bundle exec fastlane tvos BuildSBTestFlight
-
-      - name: Notify Teams
-        if: ${{ success() && inputs.destination == 'AppCenter' }}
-        run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"tvOS AppCenter Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY tvOS AppCenter Build Deployed! 🤖","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+          bundle exec fastlane ${{ steps.toLowerCase.outputs.lowercase }} BuildSBTestFlight
 
       - name: Notify Teams
         if: ${{ success() && inputs.destination == 'SB Testflight' }}
         run: |
            cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"tvOS SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY tvOS SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"${{ matrix.platform }} SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+
