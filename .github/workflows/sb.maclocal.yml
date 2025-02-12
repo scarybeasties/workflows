@@ -60,10 +60,6 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
           clean: false
-      
-      - name: Setup Unity License
-        run: |
-          ${{ inputs.unity_path }} -quit -batchmode -serial ${{ secrets.UNITY_SERIAL }} -username '${{ secrets.UNITY_EMAIL }}' -password '${{ secrets.UNITY_PASSWORD }}'
 
       - name: Delete XCode Derrived Data
         run : |
