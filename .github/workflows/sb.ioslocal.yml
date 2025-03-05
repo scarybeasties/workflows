@@ -68,6 +68,11 @@ jobs:
         run : |
           rm -rf ./iOS/Build
 
+      - name: Kill Unity
+        if: always()
+        run: |
+           pkill -9 "Unity"
+
       - name: Run iOS editor tests
         continue-on-error: true
         run: |
@@ -234,3 +239,8 @@ jobs:
            {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+
+      - name: Kill Unity
+        if: always()
+        run: |
+           pkill -9 "Unity"
