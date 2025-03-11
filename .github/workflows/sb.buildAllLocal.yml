@@ -73,15 +73,16 @@ jobs:
         run : |
           rm -rf ./${{ matrix.platform }}/Build
 
+      - name: Kill Unity
+        if: always()
+        run: |
+           pkill -9 "Unity"
+
       - name: Run ${{ matrix.platform }} editor tests
         continue-on-error: true
         run: |
           ${{ inputs.unity_path }} -runTests -batchmode -nographics -projectPath ./${{ matrix.platform }} -testResults ./Tests/${{ matrix.platform }}/results.xml -buildTarget ${{ matrix.platform }} -testPlatform EditMode
 
-      - name: Kill Unity
-        if: always()
-        run: |
-           pkill -9 "Unity"
 
       - name: ${{ matrix.platform }} Test Report
         uses: dorny/test-reporter@main
