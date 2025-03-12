@@ -74,6 +74,7 @@ jobs:
           rm -rf ./${{ matrix.platform }}/Build
 
       - name: Kill Unity
+        continue-on-error: true
         if: always()
         run: |
            pkill -9 "Unity"
@@ -212,6 +213,7 @@ jobs:
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - name: Kill Unity
+        continue-on-error: true
         if: always()
         run: |
            pkill -9 "Unity"
