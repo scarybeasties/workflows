@@ -85,7 +85,7 @@ jobs:
         run: |
           HUB_PATH="/Applications/Unity Hub.app/Contents/MacOS/Unity Hub"
           PROJECT_VERSIONS=$("$HUB_PATH" -- --headless editors -i)
-          PROJECT_PATH="$(echo "$PROJECT_VERSIONS" | grep "${{ steps.unity-get-version.outputs.version }}" | cut -d\  -f5-)/Contents/MacOS/Unity"
+          PROJECT_PATH="$(echo "$PROJECT_VERSIONS" | grep "${{ steps.unity-get-version.outputs.version }}" | cut -d\  -f6-)/Contents/MacOS/Unity"
           echo $PROJECT_PATH
           echo "::set-output name=unity_path::$PROJECT_PATH"
 
