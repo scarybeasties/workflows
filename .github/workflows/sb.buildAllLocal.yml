@@ -80,10 +80,18 @@ jobs:
         with:
           project-directory: ./${{ matrix.platform }}
 
+      - name: Get Unity Path
+        id: unity-path
+        run: |
+          HUB_PATH="/Applications/Unity Hub.app/Contents/MacOS/Unity Hub"
+          PROJECT_VERSIONS=$("$HUB_PATH" -- --headless editors -i)
+          PROJECT_PATH=$(echo "$PROJECT_VERSIONS" | grep "${{ steps.unity-get-version.outputs.version }}" | cut -d\  -f5-)
+          echo "::set-output name=unity_path::$PROJECT_PATH"
+
       - name: Run ${{ matrix.platform }} editor tests
         continue-on-error: true
         run: |
-          ${{ steps.unity-get-version.outputs.version }} -runTests -batchmode -nographics -projectPath ./${{ matrix.platform }} -testResults ./Tests/${{ matrix.platform }}/results.xml -buildTarget ${{ matrix.platform }} -testPlatform EditMode
+          ${{ steps.unity-path.outputs.unity_path }} -runTests -batchmode -nographics -projectPath ./${{ matrix.platform }} -testResults ./Tests/${{ matrix.platform }}/results.xml -buildTarget ${{ matrix.platform }} -testPlatform EditMode
 
 
       - name: ${{ matrix.platform }} Test Report
@@ -142,7 +150,7 @@ jobs:
         if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         continue-on-error: true
         run: |
-          ${{ steps.unity-get-version.outputs.version }} -batchmode -nographics -projectPath ./${{ matrix.platform }} -buildTarget ${{ matrix.platform }} -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform ${{ matrix.platform }} -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/${{ matrix.platform }}'
+           ${{ steps.unity-path.outputs.unity_path }} -batchmode -nographics -projectPath ./${{ matrix.platform }} -buildTarget ${{ matrix.platform }} -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform ${{ matrix.platform }} -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/${{ matrix.platform }}'
 
       - name: Checkout Fastlane 
         if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
