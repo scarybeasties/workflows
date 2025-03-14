@@ -85,14 +85,13 @@ jobs:
         run: |
           HUB_PATH="/Applications/Unity Hub.app/Contents/MacOS/Unity Hub"
           PROJECT_VERSIONS=$("$HUB_PATH" -- --headless editors -i)
-          PROJECT_PATH=$(echo "$PROJECT_VERSIONS" | grep "${{ steps.unity-get-version.outputs.version }}" | cut -d\  -f5-)
+          PROJECT_PATH="$(echo "$PROJECT_VERSIONS" | grep "${{ steps.unity-get-version.outputs.version }}" | cut -d\  -f5-)/Contents/MacOS/Unity"
           echo "::set-output name=unity_path::$PROJECT_PATH"
 
       - name: Run ${{ matrix.platform }} editor tests
         continue-on-error: true
         run: |
           ${{ steps.unity-path.outputs.unity_path }} -runTests -batchmode -nographics -projectPath ./${{ matrix.platform }} -testResults ./Tests/${{ matrix.platform }}/results.xml -buildTarget ${{ matrix.platform }} -testPlatform EditMode
-
 
       - name: ${{ matrix.platform }} Test Report
         uses: dorny/test-reporter@main
