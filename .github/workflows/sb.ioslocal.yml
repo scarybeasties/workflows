@@ -85,6 +85,7 @@ jobs:
 
       - name: Run iOS editor tests
         continue-on-error: true
+        timeout-minutes: 5
         run: |
           ${{ steps.unity-path.outputs.unity_path }} -runTests -batchmode -nographics -projectPath ./iOS -testResults ./Tests/iPhone/results.xml -buildTarget iOS -testPlatform EditMode
 
@@ -143,6 +144,7 @@ jobs:
       - name: Build iOS project
         if: ${{ always() && steps.iPhone_test_results.outputs.conclusion == 'success' && steps.iPhone_test_results.outputs.passed > 0 }} 
         continue-on-error: true
+        timeout-minutes: 15
         run: |
           ${{ steps.unity-path.outputs.unity_path }} -batchmode -nographics -projectPath ./iOS -buildTarget iOS -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/iOS'
 
