@@ -91,7 +91,7 @@ jobs:
 
       - name: Run ${{ matrix.platform }} editor tests
         continue-on-error: true
-        timeout-minutes: 5
+        timeout-minutes: 30
         run: |
           ${{ steps.unity-path.outputs.unity_path }} -runTests -batchmode -nographics -projectPath ./${{ matrix.platform }} -testResults ./Tests/${{ matrix.platform }}/results.xml -buildTarget ${{ matrix.platform }} -testPlatform EditMode
 
