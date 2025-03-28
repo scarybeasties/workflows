@@ -73,7 +73,7 @@ jobs:
       - uses: akiojin/unity-get-version-github-action@v1.1.13
         id: unity-get-version
         with:
-          project-directory: .${{ matrix.platform }}
+          project-directory: ./iOS
 
       - name: Get Unity Path
         id: unity-path
