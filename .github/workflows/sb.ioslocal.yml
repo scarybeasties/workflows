@@ -33,16 +33,21 @@ on:
         default: 'self-hosted'
 
 jobs:
-  buildForiOS:
-    name: Build iOS Project
+  buildAllPlatforms:
+    name: Build ${{ matrix.platform }} Project
     runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - iOS
     steps:
 
       - name: Checkout Git repo for project
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-          path: 'iOS'
+          path: ${{ matrix.platform }}
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
@@ -58,11 +63,11 @@ jobs:
 
       - name: Delete prior test results
         run : |
-          rm -rf ./iOS/Tests
+          rm -rf ./${{ matrix.platform }}/Tests
 
       - name: Delete xcode project
         run : |
-          rm -rf ./iOS/Build
+          rm -rf ./${{ matrix.platform }}/Build
 
       - name: Kill Unity
         continue-on-error: true
@@ -73,7 +78,7 @@ jobs:
       - uses: akiojin/unity-get-version-github-action@v1.1.13
         id: unity-get-version
         with:
-          project-directory: ./iOS
+          project-directory: ./${{ matrix.platform }}
 
       - name: Get Unity Path
         id: unity-path
@@ -81,53 +86,54 @@ jobs:
           HUB_PATH="/Applications/Unity Hub.app/Contents/MacOS/Unity Hub"
           PROJECT_VERSIONS=$("$HUB_PATH" -- --headless editors -i)
           PROJECT_PATH="$(echo "$PROJECT_VERSIONS" | grep "${{ steps.unity-get-version.outputs.version }}" | rev | cut -d\  -f1 | rev)/Contents/MacOS/Unity"
+          echo $PROJECT_PATH
           echo "::set-output name=unity_path::$PROJECT_PATH"
 
-      - name: Run iOS editor tests
+      - name: Run ${{ matrix.platform }} editor tests
         continue-on-error: true
         timeout-minutes: 30
         run: |
-          ${{ steps.unity-path.outputs.unity_path }} -runTests -batchmode -nographics -projectPath ./iOS -testResults ./Tests/iPhone/results.xml -buildTarget iOS -testPlatform EditMode
+          ${{ steps.unity-path.outputs.unity_path }} -runTests -batchmode -nographics -projectPath ./${{ matrix.platform }} -testResults ./Tests/${{ matrix.platform }}/results.xml -buildTarget ${{ matrix.platform }} -testPlatform EditMode
 
-      - name: iPhone Test Report
+      - name: ${{ matrix.platform }} Test Report
         uses: dorny/test-reporter@main
-        id: iPhone_test_results
-        if: ${{ always() }} && ${{ hashFiles('./iOS/Tests/iPhone/results.xml') != '' }}
+        id: test_results
+        if: ${{ always() }} && ${{ hashFiles('./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml') != '' }}
         with:
-          name: iPhone Playmode Tests           # Name of the check run which will be created
-          path: ./Tests/iPhone/results.xml   # Path to test results
+          name: ${{ matrix.platform }} Playmode Tests           # Name of the check run which will be created
+          path: ./Tests/${{ matrix.platform }}/results.xml   # Path to test results
           reporter: dotnet-nunit        # Format of test results
-          working-directory: iOS
+          working-directory: ${{ matrix.platform }}
 
       - name: Upload Test Results
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: iPhone Test Results
-          path: ./iOS/Tests/iPhone/results.xml
+          name: ${{ matrix.platform }} Test Results
+          path: ./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml
 
       - name: Notify Teams
-        if: ${{ always() && steps.iPhone_test_results.outputs.conclusion == 'success' && steps.iPhone_test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         run: |
            cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY iOS tests passed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS tests passed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.iPhone_test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.iPhone_test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.iPhone_test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.iPhone_test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - name: Notify Teams
-        if: ${{ always() && steps.iPhone_test_results.outputs.conclusion == 'failure' || steps.iPhone_test_results.outputs.passed == 0}} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'failure' || steps.test_results.outputs.passed == 0}} 
         run: |
            cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY iOS tests failed!","themeColor":"ff0000","title":"$GITHUB_REPOSITORY iOS tests failed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.iPhone_test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.iPhone_test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.iPhone_test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.iPhone_test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","themeColor":"ff0000","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - shell: bash
-        if: ${{ always() && steps.iPhone_test_results.outputs.conclusion == 'success' && steps.iPhone_test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         id: version_code
         run: |
-          cd ${GITHUB_WORKSPACE}/iOS
+          cd ${GITHUB_WORKSPACE}/${{ matrix.platform }}
           count=$(git rev-list --count HEAD)
           echo "Current count is ${count}"
 
@@ -136,20 +142,20 @@ jobs:
           echo "::set-output name=code::$count"
 
       - shell: bash
-        if: ${{ always() && steps.iPhone_test_results.outputs.conclusion == 'success' && steps.iPhone_test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         run: |
           echo ${{ steps.version_code.outputs.code }}
           echo ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
-      - name: Build iOS project
-        if: ${{ always() && steps.iPhone_test_results.outputs.conclusion == 'success' && steps.iPhone_test_results.outputs.passed > 0 }} 
+      - name: Build ${{ matrix.platform }} project
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         continue-on-error: true
         timeout-minutes: 15
         run: |
-          ${{ steps.unity-path.outputs.unity_path }} -batchmode -nographics -projectPath ./iOS -buildTarget iOS -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform iOS -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/iOS'
+           ${{ steps.unity-path.outputs.unity_path }} -batchmode -nographics -projectPath ./${{ matrix.platform }} -buildTarget ${{ matrix.platform }} -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform ${{ matrix.platform }} -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/${{ matrix.platform }}'
 
       - name: Checkout Fastlane 
-        if: ${{ always() && steps.iPhone_test_results.outputs.conclusion == 'success' || steps.iPhone_test_results.outputs.passed == 0}} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
         uses: actions/checkout@v4
         with:
           repository: scarybeasties/Fastlane
@@ -158,7 +164,7 @@ jobs:
           path: ./fastlane
 
       - name: Checkout Certs
-        if: ${{ always() && steps.iPhone_test_results.outputs.conclusion == 'success' || steps.iPhone_test_results.outputs.passed == 0}}
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.MATCH_REPOSITORY }}
@@ -166,42 +172,14 @@ jobs:
           ref: main
           path: ./certs
 
-      - name: Build to AppCenter
-        if: ${{ always() && inputs.destination == 'AppCenter' && steps.iPhone_test_results.outputs.conclusion == 'success' || steps.iPhone_test_results.outputs.passed == 0}} 
-        env:
-          APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
-          APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-
-          SB_CERTIFICATE_PASSWORD: ${{ secrets.SB_CERTIFICATE_PASSWORD }}
-
-          MATCH_DEPLOY_KEY: ${{ secrets.MATCH_DEPLOY_KEY }}
-          MATCH_REPOSITORY: ${{ secrets.MATCH_REPOSITORY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-
-          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-          APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
-
-          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
-          APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
-
-          BUILD_PATH: ${{ format('{0}/iOS/build', github.workspace) }}
-          BUNDLE_ID: ${{ inputs.bundle_id }}
-          PROJECT_NAME: ${{ github.event.repository.name }}
-
-        run: |
-          pwd
-          eval "$(ssh-agent -s)"
-          ssh-add - <<< "${MATCH_DEPLOY_KEY}"
-          find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
-          cd fastlane
-          gem install bundler:2.4.6
-          bundle install
-          bundle exec fastlane ios BuildAppCenter
+      - name: LowerCase Matrix Name
+        id: toLowerCase
+        uses: vishalmamidi/lowercase-action@v1
+        with:
+          string: ${{ matrix.platform }}
 
       - name: Build to testflight
-        if: ${{ always() && inputs.destination == 'SB Testflight' && steps.iPhone_test_results.outputs.conclusion == 'success' || steps.iPhone_test_results.outputs.passed == 0}} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
         env:
           APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
           APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
@@ -220,12 +198,13 @@ jobs:
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
           APPCENTER_OWNER: ${{ secrets.APPCENTER_OWNER }}
 
-          BUILD_PATH: ${{ format('{0}/iOS/build', github.workspace) }}
+          BUILD_PATH: ${{ format('{0}/{1}/build', github.workspace, matrix.platform) }}
           BUNDLE_ID: ${{ inputs.bundle_id }}
           PROJECT_NAME: ${{ github.event.repository.name }}
 
           BUILD_NUMBER: ${{ steps.version_code.outputs.code }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+          SCHEME_NAME: ${{ inputs.scheme_name }}
 
         run: |
           pwd
@@ -234,21 +213,13 @@ jobs:
           find $BUILD_PATH -type f -name "**.sh" -exec chmod +x {} \;
           cd fastlane
           bundle install
-          bundle exec fastlane ios BuildSBTestFlight
-
-      - name: Notify Teams
-        if: ${{ success() && inputs.destination == 'AppCenter' }}
-        run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS AppCenter Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS AppCenter Build Deployed! 🤖","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+          bundle exec fastlane ${{ steps.toLowerCase.outputs.lowercase }} BuildSBTestFlight
 
       - name: Notify Teams
         if: ${{ success() && inputs.destination == 'SB Testflight' }}
         run: |
            cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"iOS SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY iOS SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"${{ matrix.platform }} SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
