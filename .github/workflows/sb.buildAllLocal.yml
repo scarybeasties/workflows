@@ -48,7 +48,7 @@ jobs:
       - name: Checkout Git repo for project
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: 'develop'
           path: ${{ matrix.platform }}
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
