@@ -31,10 +31,6 @@ on:
         description: 'The platform that this build runs on'
         type: string
         default: 'self-hosted'
-      branch_name:
-        description: 'branch name to run on'
-        type: string
-        default: 'develop'
 
 jobs:
   buildAllPlatforms:
@@ -50,7 +46,7 @@ jobs:
       - name: Checkout Git repo for project
         uses: actions/checkout@v4
         with:
-          ref: branch_name
+          ref: ${{ github.ref }}
           path: ${{ matrix.platform }}
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
