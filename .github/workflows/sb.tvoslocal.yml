@@ -82,6 +82,7 @@ jobs:
 
       - name: Get Unity Path
         id: unity-path
+        timeout-minutes: 5
         run: |
           HUB_PATH="/Applications/Unity Hub.app/Contents/MacOS/Unity Hub"
           PROJECT_VERSIONS=$("$HUB_PATH" -- --headless editors -i)
