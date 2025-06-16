@@ -215,7 +215,7 @@ jobs:
           bundle install
           bundle exec fastlane ${{ steps.toLowerCase.outputs.lowercase }} BuildSBTestFlight
 
-            - name: Zip build for release if tagged
+      - name: Zip build for release if tagged
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           cd fastlane/
