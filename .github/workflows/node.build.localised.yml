@@ -52,7 +52,7 @@ jobs:
 
       - name: Get branch name
         id: branch-name
-        uses: tj-actions/branch-names@v9.0.0
+        uses: tj-actions/branch-names@v9.0.2
 
       - name: Update Deployment Directory
         run: deployment_directory=${deployment_directory/${branch}/${{ steps.branch-name.outputs.current_branch }}}
