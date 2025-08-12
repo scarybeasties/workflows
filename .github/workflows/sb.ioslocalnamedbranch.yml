@@ -48,7 +48,7 @@ jobs:
     steps:
 
       - name: Checkout Git repo for project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ inputs.branch_name }}
           path: ${{ matrix.platform }}
@@ -160,7 +160,7 @@ jobs:
 
       - name: Checkout Fastlane 
         if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: scarybeasties/Fastlane
           token: ${{ secrets.GH_PAT }}
@@ -169,7 +169,7 @@ jobs:
 
       - name: Checkout Certs
         if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ secrets.MATCH_REPOSITORY }}
           token: ${{ secrets.GH_PAT }}

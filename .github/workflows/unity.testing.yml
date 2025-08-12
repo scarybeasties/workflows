@@ -23,7 +23,7 @@ jobs:
           - standalone
     steps:
       - name: Checkout Git repo for project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
           submodules: recursive
