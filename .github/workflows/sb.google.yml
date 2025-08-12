@@ -45,7 +45,7 @@ jobs:
         with:
           ndk-version: ${{ inputs.android_ndk_version }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
           submodules: recursive
@@ -54,13 +54,13 @@ jobs:
           clean: false
 
       - name: Checkout reusable workflow dir
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: scarybeasties/workflows
           path: workflows
 
       - name: Checkout Build Tools
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: scarybeasties/AndroidBuildTools
           token: ${{ secrets.GH_PAT }}
