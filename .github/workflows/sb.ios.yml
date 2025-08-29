@@ -213,13 +213,13 @@ jobs:
           path: ./fastlane
 
       - name: Download iOS Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: build-iOS
           path: build/iOS
 
       - name: Download buildNumber Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: buildNumber
           path: buildNumber.txt
@@ -298,7 +298,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Download buildNumber Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: buildNumber
           path: buildNumber.txt
@@ -331,7 +331,7 @@ jobs:
           path: ./fastlane
 
       - name: Download iOS Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: build-iOS
           path: build/iOS

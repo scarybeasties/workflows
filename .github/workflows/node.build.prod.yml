@@ -26,13 +26,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Add SSH key to chekout a private repo
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.NODE_AUDIO_SSH_KEY }}
 
       - name: Get branch name
         id: branch-name
-        uses: tj-actions/branch-names@v8.0.1
+        uses: tj-actions/branch-names@v9.0.2
 
       - name: Update Deployment Directory
         run: deployment_directory=${deployment_directory/${branch}/${{ steps.branch-name.outputs.current_branch }}}
