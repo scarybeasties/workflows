@@ -267,8 +267,10 @@ jobs:
            EOF
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
-      - name: Kill Unity
+      - name: Cleanup
         continue-on-error: true
         if: always()
         run: |
            pkill -9 "Unity"
+           security default-keychain -s ~/Library/Keychains/login.keychain-db
+           security delete-keychain fastlane_tmp_keychain-db
