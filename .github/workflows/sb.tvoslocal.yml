@@ -276,6 +276,6 @@ jobs:
         if: always()
         run: |
            pkill -9 "Unity"
-           security default-keychain -s ~/Library/Keychains/login.keychain-db
            security delete-keychain fastlane_tmp_keychain-db
+           security default-keychain -s ~/Library/Keychains/login.keychain-db
 
