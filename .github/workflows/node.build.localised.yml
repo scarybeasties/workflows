@@ -94,7 +94,7 @@ jobs:
         run: npm run build:prod
 
       - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ftp.scarybserver.com
           username: github@scarybserver.com
