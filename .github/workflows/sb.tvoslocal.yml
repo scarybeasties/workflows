@@ -108,7 +108,7 @@ jobs:
       - name: Upload Test Results
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.platform }} Test Results
           path: ./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml
@@ -248,7 +248,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload build folder to github if not tagged
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: ${{ success() && !startsWith(github.ref, 'refs/tags/v') }}
         with:
           name: ios-project
@@ -256,7 +256,7 @@ jobs:
           retention-days: 5
 
       - name: Upload IPA to github if not tagged
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: ${{ success() && !startsWith(github.ref, 'refs/tags/v') }}
         with:
           name: ipa
