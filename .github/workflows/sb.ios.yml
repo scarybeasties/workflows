@@ -262,13 +262,13 @@ jobs:
 
       - name: Cleanup to avoid storage limit
         if: always()
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: build-iOS
 
       - name: Cleanup to avoid storage limit
         if: always()
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: buildNumber
 
@@ -421,13 +421,13 @@ jobs:
 
       - name: Cleanup to avoid storage limit
         if: inputs.export_xcode_project == 'false'
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: build-iOS
 
       - name: Cleanup to avoid storage limit
         if: always()
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: buildNumber
 
