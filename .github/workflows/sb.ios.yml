@@ -169,13 +169,13 @@ jobs:
           key: Library-iOS
 
       - name: Upload iOS build folder as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: build-iOS
           path: build/iOS
 
       - name: Upload build number as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: buildNumber
           path: buildNumber.txt
@@ -404,7 +404,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload build folder to github if not tagged
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: ${{ success() && !startsWith(github.ref, 'refs/tags/v') }}
         with:
           name: ios-project
@@ -412,7 +412,7 @@ jobs:
           retention-days: 5
 
       - name: Upload IPA to github if not tagged
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: ${{ success() && !startsWith(github.ref, 'refs/tags/v') }}
         with:
           name: ipa
