@@ -1,0 +1,270 @@
+name: SB - Amazon
+
+on:
+  workflow_call: 
+    inputs:
+      development_build:
+        description: 'Development Build'
+        type: string
+        default: "false"
+      bundle_id:
+        type: string
+        description: 'Bundle ID to use'
+        default: ""
+      build_aab_bundle:
+        description: 'Build AAB Bundle'
+        type: string
+        default: "false"
+      build_obb_bundle:
+        description: 'Build OOB'
+        type: string
+        default: "false"
+      destination:
+        description: 'Destination of build'
+        type: string
+        default: "AppCenter"
+      android_ndk_version: 
+        description: 'optional NDK version'
+        type: string
+        default: ""
+      offset_version_number:
+        description: 'Offset Version Number Amount'
+        type: string
+        default: "0"
+
+jobs:
+  buildForAmazonPlatformDevelopment:
+    name: Build Android (Amazon) Project
+    runs-on: self-hosted
+    steps:
+
+      - name: Setup NDK Version
+        id: setup-ndk
+        if: ${{ inputs.android_ndk_version != '' }}
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: ${{ inputs.android_ndk_version }}
+
+      - name: Checkout Git repo for project
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+          clean: false
+
+      - name: Checkout reusable workflow dir
+        uses: actions/checkout@v4
+        with:
+          repository: scarybeasties/workflows
+          path: workflows
+
+      - name: Checkout Build Tools
+        uses: actions/checkout@v4
+        with:
+          repository: scarybeasties/AndroidBuildTools
+          token: ${{ secrets.GH_PAT }}
+          ref: main
+          path: ./AndroidBuildTools
+
+      - shell: bash
+        id: version_code
+        run: |
+          git config --global --add safe.directory '*'
+          source=${SOURCE:-.}
+
+          cd ${GITHUB_WORKSPACE}/${source}
+          count=$(git rev-list --count HEAD)
+          echo "Current count is ${count}"
+
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch is ${current_branch}"
+          echo "::set-output name=code::$count"
+
+      # Free up disk space
+      - name: Free disk space
+        run: |
+          df -h
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          docker system prune -a --volumes --force
+          df -h
+          # Before
+          echo "Disk space before:"
+          df -h
+
+          #echo "Listing 100 largest packages"
+          #dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+          #echo "Removing large packages"
+          #sudo apt-get remove -y '^ghc-8.*'
+          #sudo apt-get remove -y '^dotnet-.*'
+          #sudo apt-get remove -y '^llvm-.*'
+          #sudo apt-get remove -y 'php.*'
+          #sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
+          #sudo apt-get autoremove -y
+          #sudo apt-get clean
+          #df -h
+
+          echo "Removing large directories"
+          # https://github.com/apache/flink/blob/master/tools/azure-pipelines/free_disk_space.sh
+          rm -rf /usr/share/dotnet/
+
+          # https://github.com/actions/virtual-environments/issues/709#issuecomment-612569242
+          rm -rf "/usr/local/share/boost"
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          # After
+          echo "Disk space after:"
+          df -h
+
+      - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
+          tool-cache: false
+
+          # All of these default to true, but feel free to set to "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+
+      - name: Restore library folders from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            Library
+          key: Library-Android-${{ github.ref }}
+
+      - name: Build Unity project
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+          androidAppBundle: ${{ github.event.inputs.build_aab_bundle }}
+          buildMethod: ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild
+          versioning: Custom
+          version: none
+          customParameters: -nographics -platform Amazon -development ${{ inputs.development_build }} -project_name ${{ github.event.repository.name }} -bundle_id ${{ inputs.bundle_id }} -addressables_profile Default -app_bundles ${{ inputs.build_aab_bundle }} -split_APK ${{ inputs.build_obb_bundle}} -android_ndk_home ${{ steps.setup-ndk.outputs.ndk-path }} -build_number ${{ steps.version_code.outputs.code }} -build_number_offset ${{ inputs.offset_version_number }} 
+
+      - name: Delete Previous Cache
+        continue-on-error: true
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete Library-Android --confirm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Unity library folders
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            Library
+          key: Library-Android-${{ github.ref }}
+
+      - name: Rename apk binary file 
+        if: ${{ inputs.build_obb_bundle == 'false' }}
+        run: sudo cp Amazon/**/*.apk Amazon/Android.apk || true
+      - name: Rename aab binary file 
+        if: ${{ inputs.build_aab_bundle == 'true' }}
+        run: sudo cp Amazon/**/*.aab Amazon/Android.aab || true
+
+      - name: Upload APK to AppCenter
+        if: ${{ inputs.destination == 'AppCenter' }}
+        run: bash ./workflows/.github/workflows/uploadToAppCenter.sh phil-bn62 ${{ github.event.repository.name }}_Android ${{ inputs.build_aab_bundle == 'true' && './Amazon/Android.aab' || './Amazon/Android.apk' }} ${{secrets.APPCENTER_API_TOKEN}}
+
+      - name: Get dropbox token
+        if: ${{ inputs.destination == 'Dropbox' }}
+        run: echo "DB_ACCES_TOKEN=$(curl https://api.dropbox.com/oauth2/token -d refresh_token=${{secrets.DROPBOX_REFRESH_TOKEN}} -d grant_type=refresh_token -d client_id=${{secrets.DROPBOX_CLIENT_ID}} -d client_secret=${{secrets.DROPBOX_CLIENT_SECRET}} | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")" >> $GITHUB_ENV
+
+      - name: Archive to Dropbox
+        if: ${{ inputs.destination == 'Dropbox' }}
+        run: |
+            FILES_TO_UPLOAD="Amazon/**/*"
+            for f in $FILES_TO_UPLOAD
+            do
+                if [[ ! -d "$f" ]]; then
+                    BASEDIR=$(dirname "$f")
+                    SPLIT_FOLDER=$BASEDIR"_split"
+                    FILE="$(basename $f)"
+                    sudo mkdir $SPLIT_FOLDER 
+                    NEWPATH=$(echo $f | sed "s+"$BASEDIR"+"$SPLIT_FOLDER"+")
+                    echo "Processing $f file..."
+                    sudo split -db 150000000 "$f" "$NEWPATH"
+                    FOLDER=$SPLIT_FOLDER"/*"
+
+                    SESSION_ID=$(curl -X POST https://content.dropboxapi.com/2/files/upload_session/start \
+                    --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                    --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                    --header "Dropbox-API-Arg: {\"close\":false}" \
+                    --header "Content-Type: application/octet-stream" \
+                    --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+                    | python3 -c "import sys, json; print(json.load(sys.stdin)['session_id'])")
+
+                    OFFSET=0
+                    FOLDER=$SPLIT_FOLDER"/*"
+                    for nf in $FOLDER
+                    do
+                        filesize=$(wc -c $nf | awk '{print $1}')
+                        curl -X POST https://content.dropboxapi.com/2/files/upload_session/append_v2 \
+                        --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                        --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                        --header "Dropbox-API-Arg: {\"close\":false,\"cursor\":{\"offset\":"$OFFSET",\"session_id\":\"$SESSION_ID\"}}" \
+                        --header "Content-Type: application/octet-stream" \
+                        --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+                        --data-binary @"$nf"
+
+                        OFFSET=$(($OFFSET+$filesize))
+                        
+                    done
+
+                    curl -X POST https://content.dropboxapi.com/2/files/upload_session/finish \
+                        --header "Authorization: Bearer ${{ env.DB_ACCES_TOKEN }}" \
+                        --header 'Dropbox-API-Path-Root: {".tag": "root", "root": "10680416816"}' \
+                        --header "Dropbox-API-Arg: {\"commit\":{\"autorename\":true,\"mode\":\"add\",\"mute\":false,\"path\":\"/Clients/AppBuilds/${{ github.event.repository.name }}/Amazon/${{ steps.version_code.outputs.code }}/$FILE\",\"strict_conflict\":false},\"cursor\":{\"offset\":$OFFSET,\"session_id\":\"$SESSION_ID\"}}" \
+                        --header "Content-Type: application/octet-stream" \
+                        --header "Dropbox-API-Select-Admin: ${{ secrets.DB_ADMIN_ID }}" \
+
+                    sudo rm -rf $SPLIT_FOLDER
+                fi
+            done
+
+
+      - name: Archive to Github
+        uses: actions/upload-artifact@v4
+        if: ${{ inputs.destination == 'Github' }}
+        with:
+          name: ${{ github.event.repository.name }}-${{ steps.version_code.outputs.code }}
+          path: ${{ inputs.build_aab_bundle == 'true' && 'Amazon/Android.aab' || inputs.build_obb_bundle == 'false' && 'Amazon/Android.apk' || 'Amazon' }}
+
+      - name: Notify Teams
+        if: success()
+        run: |
+          if [[ ${{ inputs.destination }} == 'AppCenter' ]]
+          then
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Amazon AppCenter Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Amazon AppCenter Build Deployed! 🤖","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          elif [[ ${{ inputs.destination }} == 'Dropbox' ]]
+          then
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Amazon Build Uploaded To Dropbox!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Amazon Build Uploaded To Dropbox!","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          elif [[ ${{ inputs.destination }} == 'Github' ]]
+          then
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"Amazon Build Uploaded as Github Artifact!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY Amazon Build Uploaded as Github Artifact!","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          fi
+
+          curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
