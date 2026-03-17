@@ -120,10 +120,10 @@ jobs:
 
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
-        run: sudo cp ${{ matrix.platform }}/**/*.apk ${{ matrix.platform }}/Android.apk || true
+        run: cp ${{ matrix.platform }}/**/*.apk ${{ matrix.platform }}/Android.apk || true
       - name: Rename aab binary file 
         if: ${{ inputs.build_aab_bundle == 'true' }}
-        run: sudo cp ${{ matrix.platform }}/**/*.aab ${{ matrix.platform }}/Android.aab || true
+        run: cp ${{ matrix.platform }}/**/*.aab ${{ matrix.platform }}/Android.aab || true
 
       - name: Upload APK to AppCenter
         if: ${{ inputs.destination == 'AppCenter' }}
