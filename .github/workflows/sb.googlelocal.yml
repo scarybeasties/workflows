@@ -90,24 +90,7 @@ jobs:
           echo $PROJECT_PATH
           echo "::set-output name=unity_path::$PROJECT_PATH"
 
-      - name: Notify Teams
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
-        run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
-
-      - name: Notify Teams
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'failure' || steps.test_results.outputs.passed == 0}} 
-        run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","themeColor":"ff0000","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
-
       - shell: bash
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         id: version_code
         run: |
           cd ${GITHUB_WORKSPACE}/${{ matrix.platform }}
@@ -119,35 +102,15 @@ jobs:
           echo "::set-output name=code::$count"
 
       - shell: bash
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         run: |
           echo ${{ steps.version_code.outputs.code }}
           echo ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
       - name: Build ${{ matrix.platform }} project
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         continue-on-error: true
         timeout-minutes: 15
         run: |
            ${{ steps.unity-path.outputs.unity_path }} -batchmode -nographics -projectPath ./${{ matrix.platform }} -buildTarget ${{ matrix.platform }} -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform ${{ matrix.platform }} -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/${{ matrix.platform }}'
-
-      - name: Checkout Fastlane 
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
-        uses: actions/checkout@v6
-        with:
-          repository: scarybeasties/Fastlane
-          token: ${{ secrets.GH_PAT }}
-          ref: main
-          path: ./fastlane
-
-      - name: Checkout Certs
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}}
-        uses: actions/checkout@v6
-        with:
-          repository: ${{ secrets.MATCH_REPOSITORY }}
-          token: ${{ secrets.GH_PAT }}
-          ref: main
-          path: ./certs
 
       - name: LowerCase Matrix Name
         id: toLowerCase
