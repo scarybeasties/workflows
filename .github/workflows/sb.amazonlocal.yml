@@ -33,7 +33,7 @@ on:
         default: "0"
 
 jobs:
-    buildAllPlatforms:
+  buildAllPlatforms:  
     name: Build ${{ matrix.platform }} Project
     runs-on: self-hosted
     strategy:
