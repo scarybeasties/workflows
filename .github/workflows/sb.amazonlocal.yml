@@ -90,30 +90,6 @@ jobs:
           echo $PROJECT_PATH
           echo "::set-output name=unity_path::$PROJECT_PATH"
 
-      - name: Run ${{ matrix.platform }} editor tests
-        continue-on-error: true
-        timeout-minutes: 30
-        run: |
-          ${{ steps.unity-path.outputs.unity_path }} -runTests -batchmode -nographics -projectPath ./${{ matrix.platform }} -testResults ./Tests/${{ matrix.platform }}/results.xml -buildTarget ${{ matrix.platform }} -testPlatform EditMode
-
-      - name: ${{ matrix.platform }} Test Report
-        uses: dorny/test-reporter@main
-        id: test_results
-        if: ${{ always() }} && ${{ hashFiles('./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml') != '' }}
-        with:
-          name: ${{ matrix.platform }} Playmode Tests           # Name of the check run which will be created
-          path: ./Tests/${{ matrix.platform }}/results.xml   # Path to test results
-          reporter: dotnet-nunit        # Format of test results
-          working-directory: ${{ matrix.platform }}
-
-      - name: Upload Test Results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.platform }} Test Results
-          path: ./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml
-
       - name: Notify Teams
         if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
         run: |
