@@ -129,7 +129,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-${{ steps.version_code.outputs.code }}
-          path: ${{ inputs.build_aab_bundle == 'true' && './${{ matrix.platform }}/build/Android/Android.aab' || inputs.build_obb_bundle == 'false' && './${{ matrix.platform }}/build/Android/Android.apk' || '${{ matrix.platform }}' }}
+          path: ${{ inputs.build_aab_bundle == 'true' && './Google/build/Android/Android.aab' || inputs.build_obb_bundle == 'false' && './Google/build/Android/Android.apk' || '${{ matrix.platform }}' }}
 
       - name: Notify Teams
         if: success()
