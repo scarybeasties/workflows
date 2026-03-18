@@ -120,16 +120,16 @@ jobs:
 
       - name: Rename apk binary file 
         if: ${{ inputs.build_obb_bundle == 'false' }}
-        run: cp ${{ matrix.platform }}/**/*.apk ${{ matrix.platform }}/Android.apk || true
+        run: cp Build/Android/*.apk Build/Android/Android.apk || true
       - name: Rename aab binary file 
         if: ${{ inputs.build_aab_bundle == 'true' }}
-        run: cp ${{ matrix.platform }}/**/*.aab ${{ matrix.platform }}/Android.aab || true
+        run: cp Build/Android/*.aab Build/Android/Android.aab || true
 
       - name: Archive to Github
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}-${{ steps.version_code.outputs.code }}
-          path: ${{ inputs.build_aab_bundle == 'true' && '${{ matrix.platform }}/Android.aab' || inputs.build_obb_bundle == 'false' && '${{ matrix.platform }}/Android.apk' || '${{ matrix.platform }}' }}
+          path: ${{ inputs.build_aab_bundle == 'true' && 'Build/Android/Android.aab' || inputs.build_obb_bundle == 'false' && 'Build/Android/Android.apk' || '${{ matrix.platform }}' }}
 
       - name: Notify Teams
         if: success()
