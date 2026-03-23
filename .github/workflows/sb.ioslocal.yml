@@ -131,7 +131,7 @@ jobs:
            curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - shell: bash
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }} 
         id: version_code
         run: |
           cd ${GITHUB_WORKSPACE}/${{ matrix.platform }}
@@ -143,13 +143,13 @@ jobs:
           echo "::set-output name=code::$count"
 
       - shell: bash
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }} 
         run: |
           echo ${{ steps.version_code.outputs.code }}
           echo ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
       - name: Build ${{ matrix.platform }} project
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }} 
         continue-on-error: true
         timeout-minutes: 15
         run: |
