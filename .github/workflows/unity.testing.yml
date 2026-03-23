@@ -117,7 +117,7 @@ jobs:
           sudo swapon --show
 
       - name: Restore library folders from cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             Library
@@ -147,7 +147,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Unity library folders
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             Library
