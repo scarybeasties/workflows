@@ -1,7 +1,7 @@
 name: SB - iOS - Local
 
 on:
-  workflow_call: 
+  workflow_call:
     inputs:
       development_build:
         description: 'Development Build'
@@ -42,7 +42,6 @@ jobs:
         platform:
           - iOS
     steps:
-
       - name: Checkout Git repo for project
         uses: actions/checkout@v6
         with:
@@ -54,26 +53,26 @@ jobs:
           clean: false
 
       - name: Delete XCode Derrived Data
-        run : |
+        run: |
           rm -rf ~/Library/Developer/Xcode/DerivedData
 
       - name: Delete XCode Archives
-        run : |
+        run: |
           rm -rf ~/Library/Developer/Xcode/Archives
 
       - name: Delete prior test results
-        run : |
+        run: |
           rm -rf ./${{ matrix.platform }}/Tests
 
       - name: Delete xcode project
-        run : |
+        run: |
           rm -rf ./${{ matrix.platform }}/Build
 
       - name: Kill Unity
         continue-on-error: true
         if: always()
         run: |
-           pkill -9 "Unity"
+          pkill -9 "Unity"
 
       - uses: akiojin/unity-get-version-github-action@v1.1.13
         id: unity-get-version
@@ -101,9 +100,9 @@ jobs:
         id: test_results
         if: ${{ always() }} && ${{ hashFiles('./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml') != '' }}
         with:
-          name: ${{ matrix.platform }} Playmode Tests           # Name of the check run which will be created
-          path: ./Tests/${{ matrix.platform }}/results.xml   # Path to test results
-          reporter: dotnet-nunit        # Format of test results
+          name: ${{ matrix.platform }} Playmode Tests # Name of the check run which will be created
+          path: ./Tests/${{ matrix.platform }}/results.xml # Path to test results
+          reporter: dotnet-nunit # Format of test results
           working-directory: ${{ matrix.platform }}
 
       - name: Upload Test Results
@@ -115,23 +114,23 @@ jobs:
           path: ./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml
 
       - name: Notify Teams
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }}
         run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests passed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - name: Notify Teams
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'failure' || steps.test_results.outputs.passed == 0}} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'failure' || steps.test_results.outputs.passed == 0}}
         run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","themeColor":"ff0000","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","themeColor":"ff0000","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} tests failed!","sections":[{"facts":[{"name": "Tests Passed", "value":"${{ steps.test_results.outputs.passed }}"}, {"name": "Tests Failed", "value":"${{ steps.test_results.outputs.failed }}"}, {"name": "Tests Skipped", "value":"${{ steps.test_results.outputs.skipped }}"}, {"name": "Test execution time", "value":"${{ steps.test_results.outputs.time }}"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - shell: bash
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }}
         id: version_code
         run: |
           cd ${GITHUB_WORKSPACE}/${{ matrix.platform }}
@@ -143,20 +142,33 @@ jobs:
           echo "::set-output name=code::$count"
 
       - shell: bash
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }}
         run: |
           echo ${{ steps.version_code.outputs.code }}
           echo ${{ steps.version_code.outputs.code }} > buildNumber.txt
 
+      - name: Check disk space before Unity build
+        shell: bash
+        run: |
+          echo "Disk usage before Unity build:"
+          df -h
+          echo
+          echo "Workspace usage:"
+          du -sh "${GITHUB_WORKSPACE}" || true
+
+          AVAILABLE_KB=$(df "${GITHUB_WORKSPACE}" | tail -1 | awk '{print $4}')
+
+          echo "Available KB: ${AVAILABLE_KB}"
+
       - name: Build ${{ matrix.platform }} project
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed >= 0 }}
         continue-on-error: true
         timeout-minutes: 15
         run: |
-           ${{ steps.unity-path.outputs.unity_path }} -batchmode -nographics -projectPath ./${{ matrix.platform }} -buildTarget ${{ matrix.platform }} -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform ${{ matrix.platform }} -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/${{ matrix.platform }}'
+          ${{ steps.unity-path.outputs.unity_path }} -batchmode -nographics -projectPath ./${{ matrix.platform }} -buildTarget ${{ matrix.platform }} -executeMethod ScaryBeasties.BuildSettings.Builder.BuildSettings.CommandLineBuild -platform ${{ matrix.platform }} -development ${{ inputs.development_build }} -bundle_id ${{ inputs.bundle_id }} -project_name ${{ github.event.repository.name }} -addressables_profile 'Default' -build_number ${{ steps.version_code.outputs.code }} -build_number_offset '0' -customBuildPath 'Build/${{ matrix.platform }}'
 
-      - name: Checkout Fastlane 
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
+      - name: Checkout Fastlane
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}}
         uses: actions/checkout@v6
         with:
           repository: scarybeasties/Fastlane
@@ -179,8 +191,21 @@ jobs:
         with:
           string: ${{ matrix.platform }}
 
+      - name: Check disk space before Xcode archive
+        shell: bash
+        run: |
+          echo "Disk usage before archive:"
+          df -h
+          echo
+          du -sh "${GITHUB_WORKSPACE}/iOS/Build" || true
+          du -sh "/Volumes/Samsung_T5/xcode" || true
+
+          AVAILABLE_KB=$(df "${GITHUB_WORKSPACE}" | tail -1 | awk '{print $4}')
+
+          echo "Available KB: ${AVAILABLE_KB}"
+
       - name: Build to testflight
-        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}} 
+        if: ${{ always() && steps.test_results.outputs.conclusion == 'success' || steps.test_results.outputs.passed == 0}}
         env:
           APPLE_CONNECT_EMAIL: ${{ secrets.APPLE_CONNECT_EMAIL }}
           APPLE_DEVELOPER_EMAIL: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
@@ -204,7 +229,7 @@ jobs:
           PROJECT_NAME: ${{ github.event.repository.name }}
 
           BUILD_NUMBER: ${{ steps.version_code.outputs.code }}
-          BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
           SCHEME_NAME: ${{ inputs.scheme_name }}
 
         run: |
@@ -238,12 +263,12 @@ jobs:
 
       - name: Upload release asset if tagged
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        id: upload-release-asset 
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           asset_path: ./${{ github.ref }}.zip
           asset_name: ${{ github.ref }}.zip
           asset_content_type: application/zip
@@ -267,16 +292,16 @@ jobs:
       - name: Notify Teams
         if: ${{ success() && inputs.destination == 'SB Testflight' }}
         run: |
-           cat << EOF > message.json
-           {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"${{ matrix.platform }} SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
-           EOF
-           curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
+          cat << EOF > message.json
+          {"@type":"MessageCard","@context":"https://schema.org/extensions","summary":"${{ matrix.platform }} SB Testflight Build Deployed!","themeColor":"00ff00","title":"$GITHUB_REPOSITORY ${{ matrix.platform }} SB Testflight Build Deployed! 🚀","sections":[{"facts":[{"name":"Build Number", "value":"${{ steps.version_code.outputs.code }}"},{"name":"Repository:","value":"$GITHUB_REPOSITORY"},{"name":"Branch:","value":"$GITHUB_REF_NAME"}]}],"potentialAction":[{"@type":"OpenUri","name":"View on GitHub","targets":[{"os":"default","uri":"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"}]}]}
+          EOF
+          curl -X POST ${{ secrets.MSTEAMS_WEBHOOK }} --header 'Content-Type: application/json' -d @message.json
 
       - name: Clean up
         continue-on-error: true
         if: always()
         run: |
-           pkill -9 "Unity" || true
-           security delete-keychain fastlane_tmp_keychain-db || true
-           security list-keychains -s 'security list-keychains | xargs'  ~/Library/Keychains/login.keychain-db || true
-           security default-keychain -s ~/Library/Keychains/login.keychain-db || true
+          pkill -9 "Unity" || true
+          security delete-keychain fastlane_tmp_keychain-db || true
+          security list-keychains -s 'security list-keychains | xargs'  ~/Library/Keychains/login.keychain-db || true
+          security default-keychain -s ~/Library/Keychains/login.keychain-db || true
