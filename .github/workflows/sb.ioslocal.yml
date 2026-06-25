@@ -112,6 +112,7 @@ jobs:
         with:
           name: ${{ matrix.platform }} Test Results
           path: ./${{ matrix.platform }}/Tests/${{ matrix.platform }}/results.xml
+          retention-days: 5
 
       - name: Notify Teams
         if: ${{ always() && steps.test_results.outputs.conclusion == 'success' && steps.test_results.outputs.passed > 0 }}

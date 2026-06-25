@@ -106,6 +106,7 @@ jobs:
           path: ./Tests/${{ matrix.platform }}/results.xml   # Path to test results
           reporter: dotnet-nunit        # Format of test results
           working-directory: ${{ matrix.platform }}
+          retention-days: 5
 
       - name: Upload Test Results
         if: always()
