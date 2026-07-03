@@ -31,6 +31,10 @@ on:
         description: 'The scheme name to build in xCode'
         type: string
         default: 'Release'
+      branch:
+        description: 'branch or commit to build from'
+        type: string
+        default: 'develop'
 
 jobs:
   buildAllPlatforms:
@@ -48,7 +52,7 @@ jobs:
       - name: Checkout Git repo for project
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ inputs.branch }}
           path: ${{ matrix.platform }}
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
