@@ -95,14 +95,12 @@ jobs:
 
       - name: Get Target platform
         id: unity-platform
-        run:
+        run: |
           PLATFORM="${{ matrix.platform }}"
-          if [ ${{ matrix.platform }} = "Mac" ]; then
+          if [ "${{ matrix.platform }}" = "Mac" ]; then
             PLATFORM="StandaloneOSX"
           fi
-          echo "::set-output name=unity_platform::$PLATFORM"
-
-          # ${{ steps.unity-platform.outputs.unity_platform }}
+          echo "unity_platform=$PLATFORM" >> "$GITHUB_OUTPUT"
 
       - name: Run ${{ matrix.platform }} editor tests
         continue-on-error: true
