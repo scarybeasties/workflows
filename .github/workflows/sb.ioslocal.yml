@@ -83,9 +83,7 @@ jobs:
         id: unity-path
         timeout-minutes: 5
         run: |
-          HUB_PATH="/Applications/Unity Hub.app/Contents/MacOS/Unity Hub"
-          PROJECT_VERSIONS=$("$HUB_PATH" -- --headless editors -i)
-          PROJECT_PATH="$(echo "$PROJECT_VERSIONS" | grep "${{ steps.unity-get-version.outputs.version }}" | rev | cut -d\  -f1 | rev)/Contents/MacOS/Unity"
+          PROJECT_PATH="$(echo unity editors -i | grep "${{ steps.unity-get-version.outputs.version }}" | rev | cut -f4)"
           echo $PROJECT_PATH
           echo "::set-output name=unity_path::$PROJECT_PATH"
 
