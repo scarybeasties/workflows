@@ -95,7 +95,7 @@ jobs:
         continue-on-error: true
         timeout-minutes: 30
         run: |
-          unity run ./${{ matrix.platform }} test  --output ./Tests/${{ matrix.platform }}/results.xml --mode EditMode
+          unity test ./${{ matrix.platform }} --output ./Tests/${{ matrix.platform }}/results.xml --mode EditMode
 
       - name: ${{ matrix.platform }} Test Report
         uses: dorny/test-reporter@main
